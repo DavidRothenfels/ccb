@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Auth & Projects</title>
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        pre { background: #f0f0f0; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Test Authentication & Projects</h1>
+    <div id="output"></div>
+    
+    <script>
+        const pb = new PocketBase('http://localhost:8091');
+        const output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            output.appendChild(div);
+        }
+        
+        async function test() {
+            // Test 1: Login
+            log('<h3>1. Testing Login</h3>');
+            try {
+                const authData = await pb.collection('users').authWithPassword(
+                    'user@citychallenge.berlin',
+                    'citychallenge2025'
+                );
+                log('✓ Login successful!', 'success');
+                log(`User ID: ${authData.record.id}`);
+                log(`Email: ${authData.record.email}`);
+                log(`Auth Valid: ${pb.authStore.isValid}`);
+                log(`Token: ${pb.authStore.token ? 'Present' : 'Missing'}`);
+            } catch (error) {
+                log(`✗ Login failed: ${error.message}`, 'error');
+                return;
+            }
+            
+            // Test 2: Load projects without filter
+            log('<h3>2. Loading Projects (no filter)</h3>');
+            try {
+                const projects1 = await pb.collection('projects').getList(1, 50, {
+                    sort: '-created'
+                });
+                log(`✓ Found ${projects1.totalItems} projects`, 'success');
+                if (projects1.items.length > 0) {
+                    log('<pre>' + JSON.stringify(projects1.items[0], null, 2) + '</pre>');
+                }
+            } catch (error) {
+                log(`✗ Error: ${error.message}`, 'error');
+                log(`<pre>${JSON.stringify(error.data, null, 2)}</pre>`);
+            }
+            
+            // Test 3: Load projects with filter
+            log('<h3>3. Loading Projects (with user filter)</h3>');
+            try {
+                const userId = pb.authStore.model.id;
+                const projects2 = await pb.collection('projects').getList(1, 50, {
+                    filter: `user = "${userId}"`,
+                    sort: '-created'
+                });
+                log(`✓ Found ${projects2.totalItems} projects for user`, 'success');
+            } catch (error) {
+                log(`✗ Error: ${error.message}`, 'error');
+                log(`<pre>${JSON.stringify(error.data, null, 2)}</pre>`);
+            }
+            
+            // Test 4: Raw API call
+            log('<h3>4. Raw API Call</h3>');
+            try {
+                const response = await fetch('/api/collections/projects/records', {
+                    headers: {
+                        'Authorization': pb.authStore.token
+                    }
+                });
+                const data = await response.json();
+                log(`✓ API Response: ${data.totalItems} items`, 'success');
+            } catch (error) {
+                log(`✗ API Error: ${error.message}`, 'error');
+            }
+            
+            // Test 5: Create test project
+            log('<h3>5. Creating Test Project</h3>');
+            try {
+                const project = await pb.collection('projects').create({
+                    user: pb.authStore.model.id,
+                    name: 'Browser Test Project ' + new Date().toLocaleString(),
+                    description: 'Created from browser test',
+                    procurement_type: 'Dienst',
+                    threshold_type: 'unterschwellig',
+                    form_data: { test: true },
+                    status: 'draft'
+                });
+                log(`✓ Project created: ${project.name}`, 'success');
+                
+                // Reload projects to verify
+                const reload = await pb.collection('projects').getList(1, 50, {
+                    sort: '-created'
+                });
+                log(`✓ After creation: ${reload.totalItems} projects total`, 'success');
+            } catch (error) {
+                log(`✗ Create Error: ${error.message}`, 'error');
+            }
+        }
+        
+        test();
+    </script>
+</body>
+</html>

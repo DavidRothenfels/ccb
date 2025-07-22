@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCX Template Generation Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success {
+            color: #28a745;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        .info {
+            color: #0c5460;
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        #status {
+            min-height: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>DOCX Template Generation Test</h1>
+    
+    <div id="status"></div>
+    
+    <div class="section">
+        <h2>1. Initialize Connection</h2>
+        <button onclick="initializePocketBase()">Verbindung zu PocketBase testen</button>
+        <div id="connectionStatus"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. Load Templates</h2>
+        <button onclick="loadAvailableTemplates()">Templates laden</button>
+        <div id="templatesStatus"></div>
+        <select id="templateSelect" onchange="updateFormFields()" style="margin-top: 1rem; display: none;">
+            <option value="">Template auswählen...</option>
+        </select>
+    </div>
+    
+    <div class="section" id="formSection" style="display: none;">
+        <h2>3. Form Data</h2>
+        <div id="dynamicFormFields"></div>
+    </div>
+    
+    <div class="section" id="generateSection" style="display: none;">
+        <h2>4. Generate DOCX</h2>
+        <button onclick="testDocxGeneration()">DOCX Dokument generieren</button>
+        <div id="generationStatus"></div>
+    </div>
+    
+    <!-- Include required libraries -->
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script src="libs/pizzip.min.js"></script>
+    <script src="libs/docxtemplater.min.js"></script>
+    <script src="libs/FileSaver.min.js"></script>
+    <script src="libs/jszip.min.js"></script>
+    <script src="docx-generator.js"></script>
+    
+    <script>
+        let pb;
+        let templates = [];
+        let selectedTemplate = null;
+        
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+        
+        async function initializePocketBase() {
+            try {
+                showStatus('Verbindung zu PocketBase wird hergestellt...', 'info');
+                
+                pb = new PocketBase('http://localhost:8091');
+                
+                // Test connection
+                const health = await fetch('http://localhost:8091/api/health');
+                if (health.ok) {
+                    document.getElementById('connectionStatus').innerHTML = '<div class="success">✓ PocketBase-Verbindung erfolgreich</div>';
+                    showStatus('PocketBase bereit', 'success');
+                } else {
+                    throw new Error('Health check failed');
+                }
+            } catch (error) {
+                console.error('PocketBase connection error:', error);
+                document.getElementById('connectionStatus').innerHTML = '<div class="error">✗ Verbindung fehlgeschlagen: ' + error.message + '</div>';
+                showStatus('Verbindung fehlgeschlagen', 'error');
+            }
+        }
+        
+        async function loadAvailableTemplates() {
+            try {
+                showStatus('Templates werden geladen...', 'info');
+                
+                if (!pb) {
+                    throw new Error('PocketBase nicht initialisiert');
+                }
+                
+                // Load templates from PocketBase
+                const records = await pb.collection('templates').getList(1, 50, {
+                    filter: 'active = true',
+                    sort: 'name'
+                });
+                
+                templates = records.items;
+                
+                if (templates.length === 0) {
+                    document.getElementById('templatesStatus').innerHTML = '<div class="info">Keine aktiven Templates gefunden</div>';
+                    showStatus('Keine Templates verfügbar', 'info');
+                    return;
+                }
+                
+                // Populate template selector
+                const select = document.getElementById('templateSelect');
+                select.innerHTML = '<option value="">Template auswählen...</option>';
+                
+                templates.forEach(template => {
+                    const option = document.createElement('option');
+                    option.value = template.id;
+                    option.textContent = `${template.name} ${template.docx_file ? '(mit DOCX)' : '(ohne DOCX)'}`;
+                    select.appendChild(option);
+                });
+                
+                select.style.display = 'block';
+                document.getElementById('templatesStatus').innerHTML = `<div class="success">✓ ${templates.length} Templates geladen</div>`;
+                showStatus(`${templates.length} Templates verfügbar`, 'success');
+                
+            } catch (error) {
+                console.error('Template loading error:', error);
+                document.getElementById('templatesStatus').innerHTML = '<div class="error">✗ Templates laden fehlgeschlagen: ' + error.message + '</div>';
+                showStatus('Templates laden fehlgeschlagen', 'error');
+            }
+        }
+        
+        function updateFormFields() {
+            const select = document.getElementById('templateSelect');
+            const templateId = select.value;
+            
+            if (!templateId) {
+                document.getElementById('formSection').style.display = 'none';
+                document.getElementById('generateSection').style.display = 'none';
+                return;
+            }
+            
+            selectedTemplate = templates.find(t => t.id === templateId);
+            if (!selectedTemplate) return;
+            
+            // Show form section
+            document.getElementById('formSection').style.display = 'block';
+            document.getElementById('generateSection').style.display = 'block';
+            
+            // Generate form fields based on template placeholders
+            const fieldsContainer = document.getElementById('dynamicFormFields');
+            fieldsContainer.innerHTML = '';
+            
+            const placeholders = selectedTemplate.placeholders || {};
+            
+            if (Object.keys(placeholders).length === 0) {
+                fieldsContainer.innerHTML = '<div class="info">Keine Platzhalter für dieses Template definiert</div>';
+                return;
+            }
+            
+            Object.entries(placeholders).forEach(([key, label]) => {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                div.innerHTML = `
+                    <label for="field_${key}">${label}:</label>
+                    <input type="text" id="field_${key}" name="${key}" placeholder="${label}">
+                `;
+                fieldsContainer.appendChild(div);
+            });
+        }
+        
+        async function testDocxGeneration() {
+            try {
+                showStatus('DOCX wird generiert...', 'info');
+                
+                if (!selectedTemplate) {
+                    throw new Error('Kein Template ausgewählt');
+                }
+                
+                if (!window.docxGenerator) {
+                    throw new Error('DOCX Generator nicht geladen');
+                }
+                
+                // Collect form data
+                const formData = {};
+                const fields = document.querySelectorAll('#dynamicFormFields input');
+                fields.forEach(field => {
+                    formData[field.name] = field.value;
+                });
+                
+                // Add some test data if fields are empty
+                Object.keys(selectedTemplate.placeholders || {}).forEach(key => {
+                    if (!formData[key]) {
+                        formData[key] = `Test ${key}`;
+                    }
+                });
+                
+                console.log('Generating DOCX with data:', formData);
+                console.log('Using template:', selectedTemplate);
+                
+                // Test document generation
+                const result = await window.docxGenerator.generateDocument(
+                    selectedTemplate, 
+                    formData, 
+                    'Test_Projekt'
+                );
+                
+                // Download the document
+                window.docxGenerator.downloadDocument(result.blob, result.filename);
+                
+                document.getElementById('generationStatus').innerHTML = '<div class="success">✓ DOCX erfolgreich generiert und heruntergeladen</div>';
+                showStatus('DOCX erfolgreich generiert!', 'success');
+                
+            } catch (error) {
+                console.error('DOCX generation error:', error);
+                document.getElementById('generationStatus').innerHTML = '<div class="error">✗ DOCX-Generierung fehlgeschlagen: ' + error.message + '</div>';
+                showStatus('DOCX-Generierung fehlgeschlagen', 'error');
+            }
+        }
+        
+        // Auto-initialize when page loads
+        window.addEventListener('load', () => {
+            showStatus('Seite geladen - bereit zum Testen', 'info');
+        });
+    </script>
+</body>
+</html>

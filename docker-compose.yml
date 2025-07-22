@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  citychallenge:
+    image: ghcr.io/${GITHUB_REPOSITORY:-citychallenge/citychallenge}:latest
+    container_name: citychallenge
+    restart: unless-stopped
+    ports:
+      - "8091:8091"
+    volumes:
+      - pb_data:/app/pb_data
+      - pb_logs:/app/pb_logs
+      - templates:/app/templates
+    environment:
+      - TZ=Europe/Berlin
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.citychallenge.rule=Host(`${SERVICE_FQDN}`)"
+      - "traefik.http.routers.citychallenge.entrypoints=websecure"
+      - "traefik.http.routers.citychallenge.tls=true"
+      - "traefik.http.routers.citychallenge.tls.certresolver=letsencrypt"
+      - "traefik.http.services.citychallenge.loadbalancer.server.port=8091"
+      - "traefik.http.services.citychallenge.loadbalancer.server.scheme=http"
+      # Coolify specific labels
+      - "coolify.managed=true"
+      - "coolify.type=application"
+      - "coolify.name=citychallenge"
+      - "coolify.description=CityChallenge Vergabe-Vorbereitungs-Tool"
+
+volumes:
+  pb_data:
+    driver: local
+  pb_logs:
+    driver: local
+  templates:
+    driver: local

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug 404 Error</title>
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+</head>
+<body>
+    <h1>Debugging PocketBase 404 Error</h1>
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="testAuth()">Test Auth</button>
+    <button onclick="testCollections()">Test Collections</button>
+    <button onclick="testProjectsDirectly()">Test Projects Directly</button>
+    <div id="output" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; white-space: pre-wrap;"></div>
+
+    <script>
+        const pb = new PocketBase('http://localhost:8091');
+        const output = document.getElementById('output');
+        
+        function log(message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `[${timestamp}] ${message}\n`;
+            if (data) {
+                output.innerHTML += JSON.stringify(data, null, 2) + '\n';
+            }
+            output.innerHTML += '\n';
+            console.log(message, data);
+        }
+        
+        async function testConnection() {
+            try {
+                log('Testing basic connection to PocketBase...');
+                const health = await fetch('http://localhost:8091/api/health');
+                const healthData = await health.json();
+                log('Health check response:', healthData);
+            } catch (error) {
+                log('Connection error:', error.message);
+            }
+        }
+        
+        async function testAuth() {
+            try {
+                log('Testing authentication...');
+                const authData = await pb.collection('users').authWithPassword(
+                    'user@citychallenge.berlin',
+                    'citychallenge2025'
+                );
+                log('Auth successful!', {
+                    userId: authData.record.id,
+                    email: authData.record.email,
+                    token: pb.authStore.token ? 'Present' : 'Missing'
+                });
+            } catch (error) {
+                log('Auth error:', {
+                    message: error.message,
+                    status: error.status,
+                    response: error.response
+                });
+            }
+        }
+        
+        async function testCollections() {
+            try {
+                log('Testing collection access...');
+                
+                // First, let's see what collections are available
+                const collectionsResponse = await fetch('http://localhost:8091/api/collections', {
+                    headers: {
+                        'Authorization': pb.authStore.token
+                    }
+                });
+                
+                if (!collectionsResponse.ok) {
+                    log('Collections endpoint error:', {
+                        status: collectionsResponse.status,
+                        statusText: collectionsResponse.statusText
+                    });
+                } else {
+                    const collections = await collectionsResponse.json();
+                    log('Available collections:', collections);
+                }
+            } catch (error) {
+                log('Collections error:', error);
+            }
+        }
+        
+        async function testProjectsDirectly() {
+            try {
+                log('Testing projects collection directly...');
+                
+                // Test with full URL
+                const url = 'http://localhost:8091/api/collections/projects/records';
+                log('Fetching from:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': pb.authStore.token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log('Response status:', response.status);
+                log('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    log('Error response body:', text);
+                } else {
+                    const data = await response.json();
+                    log('Success! Projects data:', data);
+                }
+                
+                // Also try with PocketBase SDK
+                log('\nTrying with PocketBase SDK...');
+                const records = await pb.collection('projects').getList(1, 50);
+                log('SDK Success! Found projects:', records);
+                
+            } catch (error) {
+                log('Projects error:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack,
+                    originalError: error.originalError
+                });
+            }
+        }
+        
+        // Auto-run tests
+        window.onload = async () => {
+            await testConnection();
+            await testAuth();
+            await testCollections();
+        };
+    </script>
+</body>
+</html>

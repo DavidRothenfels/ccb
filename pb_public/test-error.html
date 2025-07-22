@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Error</title>
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+</head>
+<body>
+    <h1>Testing PocketBase Connection</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testProjects()">Test Projects</button>
+    <div id="output" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+    <script>
+        const pb = new PocketBase('http://localhost:8091');
+        const output = document.getElementById('output');
+        
+        function log(message) {
+            output.innerHTML += `<p>${message}</p>`;
+            console.log(message);
+        }
+        
+        async function testLogin() {
+            try {
+                log('Testing login...');
+                const authData = await pb.collection('users').authWithPassword(
+                    'user@citychallenge.berlin',
+                    'citychallenge2025'
+                );
+                log(`Login successful! User: ${authData.record.email}`);
+                log(`Auth token: ${pb.authStore.token ? 'Present' : 'Missing'}`);
+            } catch (error) {
+                log(`Login error: ${error.message}`);
+                log(`Error details: ${JSON.stringify(error.response)}`);
+            }
+        }
+        
+        async function testProjects() {
+            try {
+                log('Testing projects collection...');
+                log(`Is authenticated: ${pb.authStore.isValid}`);
+                
+                // Try different approaches
+                log('1. Trying getList()...');
+                const list = await pb.collection('projects').getList(1, 50);
+                log(`Success! Found ${list.totalItems} projects`);
+                
+            } catch (error) {
+                log(`Projects error: ${error.message}`);
+                log(`Error status: ${error.status}`);
+                log(`Error response: ${JSON.stringify(error.response)}`);
+                
+                // Try without auth
+                log('2. Trying without auth...');
+                pb.authStore.clear();
+                try {
+                    const list = await pb.collection('projects').getList(1, 50);
+                    log(`Without auth: Found ${list.totalItems} projects`);
+                } catch (error2) {
+                    log(`Without auth error: ${error2.message}`);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

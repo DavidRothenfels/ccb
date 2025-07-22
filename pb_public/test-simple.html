@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Test</title>
+</head>
+<body>
+    <h1>Simple PocketBase Test</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testProjects()">Test Projects</button>
+    <div id="output" style="margin-top: 20px; font-family: monospace; white-space: pre;"></div>
+    
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script>
+        const pb = new PocketBase('http://localhost:8091');
+        const output = document.getElementById('output');
+        
+        function log(msg) {
+            output.innerHTML += msg + '\n';
+            console.log(msg);
+        }
+        
+        async function testLogin() {
+            output.innerHTML = '';
+            log('Testing login...');
+            try {
+                const result = await pb.collection('users').authWithPassword(
+                    'user@citychallenge.berlin',
+                    'citychallenge2025'
+                );
+                log('✓ Login successful!');
+                log('User ID: ' + result.record.id);
+                log('Email: ' + result.record.email);
+                log('Token: ' + (pb.authStore.token ? 'Present' : 'Missing'));
+                log('Is Valid: ' + pb.authStore.isValid);
+            } catch (err) {
+                log('✗ Login failed: ' + err.message);
+                log('Error details: ' + JSON.stringify(err.data || err));
+            }
+        }
+        
+        async function testProjects() {
+            output.innerHTML = '';
+            if (!pb.authStore.isValid) {
+                log('Please login first!');
+                return;
+            }
+            
+            log('Testing project loading...');
+            log('Current user ID: ' + pb.authStore.model.id);
+            
+            try {
+                // Test without any filter
+                log('\n1. Loading all projects (no filter)...');
+                const all = await pb.collection('projects').getList(1, 50);
+                log('✓ Success! Total: ' + all.totalItems);
+                
+                // Show each project
+                all.items.forEach((p, i) => {
+                    log(`  ${i+1}. ${p.name} (user: ${p.user})`);
+                });
+                
+                // Client-side filter
+                const userId = pb.authStore.model.id;
+                const userProjects = all.items.filter(p => p.user === userId);
+                log('\nFiltered to user projects: ' + userProjects.length);
+                
+            } catch (err) {
+                log('✗ Failed: ' + err.message);
+                log('Error: ' + JSON.stringify(err.data || err));
+            }
+        }
+    </script>
+</body>
+</html>

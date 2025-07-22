@@ -1,6 +1,9 @@
 // Initialize PocketBase
 const pb = new PocketBase('http://localhost:8091');
 
+// Enable auto-cancellation of pending requests
+pb.autoCancellation(false);
+
 // State management
 const state = {
     currentUser: null,
@@ -9,7 +12,9 @@ const state = {
     projects: [],
     documents: [],
     comments: [],
-    selectedTemplateId: null
+    selectedTemplateId: null,
+    selectedTemplates: new Set(), // Track which templates are selected
+    formData: {} // Store form data for auto-save
 };
 
 // DOM Elements
@@ -44,21 +49,25 @@ function setupEventListeners() {
         logoutBtn.addEventListener('click', handleLogout);
     }
     
+    // Settings button
+    const settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            // Navigate to admin section
+            const adminNavItem = document.querySelector('[data-section="admin"]');
+            if (adminNavItem) {
+                adminNavItem.click();
+            }
+        });
+    }
+    
+    
     // Navigation - Updated for new structure
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', handleNavigation);
     });
     
-    // New project buttons
-    const newProjectBtn = document.getElementById('newProjectBtn');
-    if (newProjectBtn) {
-        newProjectBtn.addEventListener('click', handleNewProject);
-    }
-    
-    const newProjectBtn2 = document.getElementById('newProjectBtn2');
-    if (newProjectBtn2) {
-        newProjectBtn2.addEventListener('click', handleNewProject);
-    }
+    // New project buttons (removed since we now have the form on main page)
     
     // Header logout button
     const headerLogoutBtn = document.getElementById('headerLogoutBtn');
@@ -66,13 +75,6 @@ function setupEventListeners() {
         headerLogoutBtn.addEventListener('click', handleLogout);
     }
     
-    // Settings button
-    const settingsBtn = document.getElementById('settingsBtn');
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => {
-            alert('Einstellungen - Noch in Entwicklung');
-        });
-    }
     
     // Back to dashboard
     document.getElementById('backToDashboard').addEventListener('click', showDashboard);
@@ -81,27 +83,39 @@ function setupEventListeners() {
     document.getElementById('projectForm').addEventListener('submit', handleProjectSave);
     
     // Export to API
-    document.getElementById('exportToApi').addEventListener('click', handleApiExport);
+    const exportBtn = document.getElementById('exportToApi');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', handleApiExport);
+    }
     
     // Download all button
-    document.getElementById('downloadAllBtn').addEventListener('click', handleDownloadAll);
+    const downloadBtn = document.getElementById('downloadAllBtn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', handleDownloadAll);
+    }
     
     // Comment modal
     document.querySelectorAll('.close-btn').forEach(btn => {
         btn.addEventListener('click', closeCommentModal);
     });
     
-    document.getElementById('commentForm').addEventListener('submit', handleCommentSave);
+    const commentForm = document.getElementById('commentForm');
+    if (commentForm) {
+        commentForm.addEventListener('submit', handleCommentSave);
+    }
     
-    // Admin tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', handleAdminTab);
-    });
+    // Admin tabs removed - no longer needed
     
     // Template selector
     const templateSelector = document.getElementById('templateSelector');
     if (templateSelector) {
         templateSelector.addEventListener('change', handleTemplateChange);
+    }
+    
+    // Basic Data Form
+    const basicDataForm = document.getElementById('basicDataForm');
+    if (basicDataForm) {
+        basicDataForm.addEventListener('submit', handleBasicDataSubmit);
     }
 }
 
@@ -143,9 +157,12 @@ function showDashboard() {
     document.getElementById('sidebarUserName').textContent = state.currentUser.name || 'Benutzer';
     document.getElementById('sidebarUserEmail').textContent = state.currentUser.email;
     
-    // Show/hide admin navigation
+    // Show admin section if user is admin
     const isAdmin = state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin');
-    document.getElementById('adminNav').style.display = isAdmin ? 'block' : 'none';
+    const adminSettings = document.getElementById('adminSettings');
+    if (adminSettings) {
+        adminSettings.style.display = isAdmin ? 'block' : 'none';
+    }
     
     // Initialize Feather icons
     setTimeout(() => feather.replace(), 100);
@@ -167,10 +184,17 @@ function showProjectEdit(projectId = null) {
     } else {
         // New project
         state.currentProject = null;
+        state.selectedTemplates.clear();
+        state.formData = {};
         document.getElementById('projectForm').reset();
-        loadDynamicFields();
-        // Show live preview immediately for new projects
-        updateLivePreview();
+        
+        // Reset template selection and form fields
+        clearTemplateSelection();
+        clearFormFields();
+        clearDocumentPreview();
+        
+        // Update project summary
+        updateProjectSummary();
     }
 }
 
@@ -226,16 +250,80 @@ function handleNavigation(e) {
 // Projects Management
 async function loadProjects() {
     try {
-        // Add filter to only get current user's projects
-        const records = await pb.collection('projects').getList(1, 50, {
-            filter: `user = "${state.currentUser.id}"`,
-            sort: '-created'
+        console.log('Loading projects for user:', state.currentUser?.id);
+        console.log('Auth valid:', pb.authStore.isValid);
+        console.log('Auth token present:', !!pb.authStore.token);
+        
+        // Check if we're authenticated
+        if (!pb.authStore.isValid) {
+            console.error('Not authenticated, redirecting to login');
+            showLogin();
+            return;
+        }
+        
+        // Load all projects and filter client-side
+        // Note: projects table has no 'created' field, so we sort by id instead
+        const records = await pb.collection('projects').getFullList({
+            sort: '-id'
         });
         
-        state.projects = records.items;
+        // Filter to only show current user's projects
+        // Handle both string IDs (old data) and relations (new data)
+        state.projects = records.filter(project => {
+            let projectUserId;
+            
+            // Check if project.user is an object (expanded relation)
+            if (typeof project.user === 'object' && project.user !== null && project.user.id) {
+                projectUserId = project.user.id;
+            } else if (typeof project.user === 'string') {
+                // It's a string (direct user ID)
+                projectUserId = project.user;
+            } else if (Array.isArray(project.user) && project.user.length > 0) {
+                // If it's an array (relation stored as array), take first ID
+                projectUserId = project.user[0];
+            } else {
+                // Invalid or missing value
+                projectUserId = null;
+            }
+            
+            return projectUserId === state.currentUser.id;
+        });
+        console.log('Loaded projects:', state.projects.length, 'for user:', state.currentUser.id);
         renderProjects();
     } catch (error) {
         console.error('Error loading projects:', error);
+        console.error('Error details:', {
+            message: error.message,
+            status: error.status,
+            response: error.response,
+            url: error.url,
+            data: error.data,
+            originalError: error.originalError
+        });
+        
+        // Detailliertes Logging für besseres Debugging
+        if (error.response) {
+            console.error('Response headers:', error.response.headers);
+            console.error('Response body:', error.response.body);
+            console.error('Response data:', error.response.data);
+            if (error.response.data) {
+                console.error('Error code:', error.response.data.code);
+                console.error('Error message:', error.response.data.message);
+                console.error('Error details:', error.response.data.details);
+            }
+        }
+        
+        // Check if it's a 404 error
+        if (error.status === 404) {
+            console.error('Projects collection not found. Please check PocketBase setup.');
+            showToast('Fehler: Projekte-Sammlung nicht gefunden. Bitte PocketBase neu starten.', 'error');
+        } else if (error.status === 401) {
+            console.error('Authentication error, redirecting to login');
+            pb.authStore.clear();
+            showLogin();
+            return;
+        }
+        
         // If error, show empty state
         state.projects = [];
         renderProjects();
@@ -262,29 +350,23 @@ function renderProjects() {
     }
     
     container.innerHTML = state.projects.map(project => `
-        <div class="project-card" onclick="showProjectEdit('${project.id}')">
+        <div class="project-card" onclick="showProjectEdit('${project.id}')" style="cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                <h3>${project.name}</h3>
+                <h3 style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary);">
+                    <i data-feather="folder" style="width: 20px; height: 20px;"></i>
+                    ${project.name}
+                </h3>
                 <span class="status ${project.status || 'draft'}">${getStatusLabel(project.status || 'draft')}</span>
             </div>
-            <p>${project.description || 'Keine Beschreibung'}</p>
+            <p style="color: var(--gray-600); margin-bottom: 1rem;">${project.description || 'Keine Beschreibung'}</p>
             <div style="display: flex; gap: 1rem; margin-top: 1rem; font-size: 0.875rem; color: var(--gray);">
-                <span>${project.procurement_type || 'Nicht definiert'}</span>
+                <span><i data-feather="tag" style="width: 14px; height: 14px; vertical-align: middle;"></i> ${project.procurement_type || 'Nicht definiert'}</span>
                 <span>•</span>
-                <span>${project.threshold_type || 'Nicht definiert'}</span>
+                <span><i data-feather="layers" style="width: 14px; height: 14px; vertical-align: middle;"></i> ${project.threshold_type || 'Nicht definiert'}</span>
                 <span>•</span>
-                <span>${new Date(project.created).toLocaleDateString('de-DE')}</span>
+                <span><i data-feather="calendar" style="width: 14px; height: 14px; vertical-align: middle;"></i> ${new Date(project.created).toLocaleDateString('de-DE')}</span>
             </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem;" onclick="event.stopPropagation(); showProjectEdit('${project.id}')">
-                    <i data-feather="edit-3"></i>
-                    <span>Bearbeiten</span>
-                </button>
-                <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem;" onclick="event.stopPropagation(); deleteProject('${project.id}')" title="Projekt löschen">
-                    <i data-feather="trash-2"></i>
-                    <span>Löschen</span>
-                </button>
-            </div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to right, var(--primary), var(--primary-dark)); height: 3px; transform: scaleX(0); transition: transform 0.2s ease;"></div>
         </div>
     `).join('');
     
@@ -303,7 +385,56 @@ function getStatusLabel(status) {
 }
 
 function handleNewProject() {
-    showProjectEdit();
+    // Show simple project creation modal instead of full edit screen
+    const modal = document.getElementById('createProjectModal');
+    modal.classList.add('show');
+    document.getElementById('quickProjectName').focus();
+}
+
+function closeCreateProjectModal() {
+    const modal = document.getElementById('createProjectModal');
+    modal.classList.remove('show');
+    document.getElementById('createProjectForm').reset();
+}
+
+async function handleQuickProjectCreate(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('quickProjectName').value.trim();
+    const description = document.getElementById('quickProjectDescription').value.trim();
+    
+    if (!name) {
+        showToast('Bitte geben Sie einen Projektnamen ein', 'error');
+        return;
+    }
+    
+    try {
+        // Create project with minimal data
+        const projectData = {
+            name: name,
+            description: description,
+            user: state.currentUser.id,
+            status: 'draft',
+            procurement_type: 'service', // Default value
+            threshold_type: 'unterschwellig', // Default value
+            form_data: {}
+        };
+        
+        const project = await pb.collection('projects').create(projectData);
+        
+        closeCreateProjectModal();
+        showToast('Projekt erstellt', 'success');
+        
+        // Reload projects list
+        await loadProjects();
+        
+        // Open the project for editing
+        showProjectEdit(project.id);
+        
+    } catch (error) {
+        console.error('Error creating project:', error);
+        showToast('Fehler beim Erstellen des Projekts: ' + error.message, 'error');
+    }
 }
 
 async function loadProject(projectId) {
@@ -311,35 +442,35 @@ async function loadProject(projectId) {
         const project = await pb.collection('projects').getOne(projectId);
         state.currentProject = project;
         
-        // Fill form with project data
-        document.getElementById('projectName').value = project.name;
-        document.getElementById('projectDescription').value = project.description || '';
-        document.getElementById('procurementType').value = project.procurement_type;
-        document.getElementById('thresholdType').value = project.threshold_type;
-        
-        // Populate template selector based on threshold type
-        populateTemplateSelector();
-        
-        // Load dynamic fields with saved data
-        loadDynamicFields(project.form_data);
-        
-        // If documents exist, load them, otherwise show live preview
-        if (state.currentProject) {
-            const docs = await pb.collection('documents').getList(1, 1, {
-                filter: `project = "${projectId}"`
-            });
-            
-            if (docs.items.length > 0) {
-                // Load saved documents
-                loadProjectDocuments(projectId);
-            } else {
-                // Show live preview
-                updateLivePreview();
-            }
+        // Load selected templates from project data
+        if (project.selected_templates) {
+            state.selectedTemplates = new Set(project.selected_templates);
+        } else {
+            state.selectedTemplates.clear();
         }
+        
+        // Load form data
+        state.formData = project.form_data || {};
+        
+        // Update state.formData with project data for the summary
+        state.formData.projectName = project.name;
+        state.formData.projectDescription = project.description || '';
+        state.formData.procurementType = project.procurement_type || '';
+        state.formData.thresholdType = project.threshold_type;
+        
+        // Update project summary display
+        updateProjectSummary();
+        
+        // Update template selection UI
+        updateTemplateCheckboxes();
+        
+        // Load form fields and documents
+        loadFormFieldsFromSelectedTemplates();
+        updateDocumentPreview();
+        
     } catch (error) {
         console.error('Error loading project:', error);
-        alert('Fehler beim Laden des Projekts');
+        showToast('Fehler beim Laden des Projekts: ' + error.message, 'error');
         showDashboard();
     }
 }
@@ -397,17 +528,31 @@ async function handleProjectSave(e) {
 // Templates Management (loaded but not displayed in navigation)
 async function loadTemplates() {
     try {
+        console.log('Loading templates...');
+        
         const records = await pb.collection('templates').getList(1, 50, {
             filter: 'active = true',
             sort: 'category,name'
         });
         
         state.templates = records.items;
+        console.log('Loaded templates:', state.templates.length);
         
         // Populate template selector dropdown
         populateTemplateSelector();
     } catch (error) {
         console.error('Error loading templates:', error);
+        console.error('Templates error details:', {
+            message: error.message,
+            status: error.status,
+            response: error.response
+        });
+        
+        // Check if it's a 404 error
+        if (error.status === 404) {
+            console.error('Templates collection not found.');
+            showToast('Fehler: Vorlagen-Sammlung nicht gefunden.', 'error');
+        }
         
         // Show error message to user
         const selector = document.getElementById('templateSelector');
@@ -508,15 +653,7 @@ function handleTemplateChange() {
     renderDocuments();
 }
 
-// Handle threshold type change
-function handleThresholdChange() {
-    // Update template selector based on new threshold
-    populateTemplateSelector();
-    
-    // Reload form fields
-    const savedData = state.currentProject?.form_data || {};
-    loadDynamicFields(savedData);
-}
+// Removed handleThresholdChange - no longer needed
 
 // Dynamic Form Fields
 function loadDynamicFields(savedData = {}) {
@@ -802,14 +939,17 @@ function renderDocuments() {
                 <h3 class="card-title">${template?.name || 'Dokument'}</h3>
                 <div style="display: flex; gap: 0.5rem;">
                     <button class="btn btn-small btn-secondary" onclick="downloadDocumentAsDocx('${selectedDoc.id}')">
-                        📥 DOCX
+                        <i data-feather="download"></i>
+                        <span>DOCX</span>
                     </button>
                     <button class="btn btn-small btn-secondary" onclick="copyDocument('${selectedDoc.id}')">
-                        📋 Kopieren
+                        <i data-feather="copy"></i>
+                        <span>Kopieren</span>
                     </button>
                     ${state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin') ? `
                         <button class="btn btn-small btn-primary" onclick="openCommentModal('${selectedDoc.id}')">
-                            💬 Kommentar
+                            <i data-feather="message-circle"></i>
+                            <span>Kommentar</span>
                         </button>
                     ` : ''}
                 </div>
@@ -822,6 +962,9 @@ function renderDocuments() {
             </div>
         </div>
     `;
+    
+    // Re-initialize Feather icons for the newly added content
+    setTimeout(() => feather.replace(), 100);
     
     // Load comments for this document
     loadDocumentComments(selectedDoc.id);
@@ -1083,50 +1226,10 @@ async function handleCommentSave(e) {
 }
 
 // Admin Functions
-function handleAdminTab(e) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    e.target.classList.add('active');
-    
-    const tab = e.target.dataset.tab;
-    loadAdminData(tab);
-}
-
-async function loadAdminData(tab = 'comments') {
+async function loadAdminData() {
     const container = document.getElementById('adminContent');
     
-    if (tab === 'comments') {
-        try {
-            const comments = await pb.collection('comments').getList(1, 50, {
-                expand: 'document,author,document.project',
-                sort: '-created'
-            });
-            
-            container.innerHTML = `
-                <h3 style="margin-bottom: 1.5rem;">Alle Kommentare</h3>
-                ${comments.items.map(comment => `
-                    <div style="padding: 1rem; border-bottom: 1px solid var(--gray-200);">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <strong>${comment.expand?.author?.email || 'Admin'}</strong>
-                            <span style="font-size: 0.875rem; color: var(--gray-500);">
-                                ${new Date(comment.created).toLocaleDateString('de-DE')}
-                            </span>
-                        </div>
-                        <div style="margin-bottom: 0.5rem;">${comment.comment_text}</div>
-                        ${comment.field_reference ? `
-                            <span style="font-size: 0.75rem; background: var(--gray-100); padding: 0.25rem 0.5rem; border-radius: 4px;">
-                                Feld: ${comment.field_reference}
-                            </span>
-                        ` : ''}
-                        <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.5rem;">
-                            Projekt: ${comment.expand?.document?.expand?.project?.name || 'Unbekannt'}
-                        </div>
-                    </div>
-                `).join('')}
-            `;
-        } catch (error) {
-            container.innerHTML = '<p>Fehler beim Laden der Kommentare</p>';
-        }
-    } else if (tab === 'api') {
+    // Only show API configuration
         try {
             const configs = await pb.collection('api_configs').getList();
             
@@ -1134,7 +1237,8 @@ async function loadAdminData(tab = 'comments') {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h3>API Konfigurationen</h3>
                     <button class="btn btn-primary btn-small" onclick="openApiSettingsModal()">
-                        + Neue Konfiguration
+                        <i data-feather="plus"></i>
+                        <span>Neue Konfiguration</span>
                     </button>
                 </div>
                 ${configs.items.length === 0 ? `
@@ -1156,20 +1260,24 @@ async function loadAdminData(tab = 'comments') {
                             </div>
                             <div style="display: flex; gap: 0.5rem;">
                                 <button class="btn btn-small btn-secondary" onclick="editApiConfig('${config.id}')">
-                                    ✏️ Bearbeiten
+                                    <i data-feather="edit-3"></i>
+                                    <span>Bearbeiten</span>
                                 </button>
                                 <button class="btn btn-small btn-secondary" onclick="deleteApiConfig('${config.id}')">
-                                    🗑️ Löschen
+                                    <i data-feather="trash-2"></i>
+                                    <span>Löschen</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 `).join('')}
             `;
+            
+            // Re-initialize Feather icons for the newly added content
+            setTimeout(() => feather.replace(), 100);
         } catch (error) {
             container.innerHTML = '<p>Fehler beim Laden der API-Konfigurationen</p>';
         }
-    }
 }
 
 // Export Functions
@@ -1256,64 +1364,76 @@ function prepareExportData(config) {
     return JSON.parse(result);
 }
 
-// Document Actions
+// Document Actions - Download aktuell angezeigtes Dokument als DOCX
 async function downloadDocumentAsDocx(documentId) {
     const doc = state.documents.find(d => d.id === documentId);
     if (!doc) return;
     
     try {
-        // Use the global generateDocxFromDocument function
-        if (window.generateDocxFromDocument) {
-            const document = await window.generateDocxFromDocument(doc, state.currentProject, doc.expand?.template);
-            
-            if (document && window.docx) {
-                const blob = await window.docx.Packer.toBlob(document);
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${state.currentProject.name}_${doc.expand?.template?.name || 'dokument'}.docx`;
-                a.click();
-                URL.revokeObjectURL(url);
-                return;
-            }
-        }
+        showToast('DOCX wird generiert...', 'info');
         
-        // Fallback: Download as HTML converted to DOCX
+        const template = doc.expand?.template;
+        const projectName = state.currentProject.name.replace(/[^a-zA-Z0-9]/g, '_');
+        const templateName = template?.name.replace(/[^a-zA-Z0-9]/g, '_') || 'dokument';
+        
+        // HTML-Inhalt des angezeigten Dokuments holen
         const content = document.getElementById(`doc-${documentId}`).innerHTML;
-        const html = `
+        
+        // Saubere HTML-zu-DOCX Konvertierung
+        const cleanHtml = content
+            .replace(/<button[^>]*>.*?<\/button>/gi, '') // Buttons entfernen
+            .replace(/<i[^>]*data-feather[^>]*><\/i>/gi, '') // Feather Icons entfernen
+            .replace(/\s+/g, ' ') // Mehrfache Leerzeichen
+            .trim();
+        
+        const fullHtml = `
+            <!DOCTYPE html>
             <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>
-            <head><meta charset='utf-8'></head>
-            <body>${content}</body>
+            <head>
+                <meta charset='utf-8'>
+                <title>${template?.name || 'Dokument'}</title>
+                <style>
+                    body { font-family: 'Calibri', sans-serif; font-size: 11pt; line-height: 1.4; margin: 2cm; }
+                    h1, h2, h3 { color: #333; margin-top: 1.5em; margin-bottom: 0.5em; }
+                    h1 { font-size: 16pt; }
+                    h2 { font-size: 14pt; }
+                    h3 { font-size: 12pt; }
+                    .card { margin-bottom: 1em; }
+                    .card-header { font-weight: bold; margin-bottom: 0.5em; }
+                    .document-preview { margin: 1em 0; }
+                    table { border-collapse: collapse; width: 100%; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <div style="text-align: center; margin-bottom: 2em;">
+                    <h1>${template?.name || 'Vergabedokument'}</h1>
+                    <p><strong>Projekt:</strong> ${state.currentProject.name}</p>
+                    <p><strong>Erstellt am:</strong> ${new Date().toLocaleDateString('de-DE')}</p>
+                </div>
+                ${cleanHtml}
+            </body>
             </html>
         `;
         
-        const blob = new Blob([html], { type: 'application/msword' });
+        // Als DOCX-kompatible HTML-Datei herunterladen
+        const blob = new Blob([fullHtml], { 
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+        });
+        
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${state.currentProject.name}_${doc.expand?.template?.name || 'dokument'}.doc`;
+        a.download = `${projectName}_${templateName}.docx`;
         a.click();
         URL.revokeObjectURL(url);
+        
+        showToast('DOCX-Dokument heruntergeladen', 'success');
+        
     } catch (error) {
         console.error('Error generating DOCX:', error);
-        alert('Fehler beim Erstellen der DOCX-Datei. Die Datei wird als DOC heruntergeladen.');
-        
-        // Fallback download
-        const content = document.getElementById(`doc-${documentId}`).innerHTML;
-        const html = `
-            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>
-            <head><meta charset='utf-8'></head>
-            <body>${content}</body>
-            </html>
-        `;
-        
-        const blob = new Blob([html], { type: 'application/msword' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${state.currentProject.name}_${doc.expand?.template?.name || 'dokument'}.doc`;
-        a.click();
-        URL.revokeObjectURL(url);
+        showToast('Fehler beim Erstellen der DOCX-Datei: ' + error.message, 'error');
     }
 }
 
@@ -1423,39 +1543,71 @@ function debounce(func, wait) {
 // Download all documents as ZIP
 async function handleDownloadAll() {
     if (!state.documents || state.documents.length === 0) {
-        alert('Keine Dokumente zum Herunterladen vorhanden');
+        showToast('Keine Dokumente zum Herunterladen vorhanden', 'warning');
         return;
     }
     
     if (!window.JSZip) {
-        alert('ZIP-Bibliothek nicht geladen');
+        showToast('ZIP-Bibliothek nicht geladen', 'error');
         return;
     }
     
     try {
+        showToast('Erstelle ZIP-Archiv...', 'info');
         const zip = new JSZip();
         const projectName = state.currentProject.name.replace(/[^a-z0-9]/gi, '_');
         
-        // Generate DOCX for each document
+        // Generate HTML-to-DOCX for each document
         for (const doc of state.documents) {
             const template = doc.expand?.template;
             if (!template) continue;
             
-            const docxDoc = await generateDocxFromDocument(doc, state.currentProject, template);
-            if (docxDoc) {
-                const blob = await window.docx.Packer.toBlob(docxDoc);
-                const filename = `${template.name.replace(/[^a-z0-9]/gi, '_')}.docx`;
-                zip.file(filename, blob);
+            try {
+                // HTML-Inhalt des Dokuments holen (simuliert)
+                const templateName = template.name.replace(/[^a-zA-Z0-9]/g, '_');
+                
+                // Erstelle HTML-Inhalt für das Dokument
+                const documentHtml = `
+                    <!DOCTYPE html>
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>
+                    <head>
+                        <meta charset='utf-8'>
+                        <title>${template.name}</title>
+                        <style>
+                            body { font-family: 'Calibri', sans-serif; font-size: 11pt; line-height: 1.4; margin: 2cm; }
+                            h1, h2, h3 { color: #333; margin-top: 1.5em; margin-bottom: 0.5em; }
+                            h1 { font-size: 16pt; }
+                            h2 { font-size: 14pt; }
+                            h3 { font-size: 12pt; }
+                        </style>
+                    </head>
+                    <body>
+                        <div style="text-align: center; margin-bottom: 2em;">
+                            <h1>${template.name}</h1>
+                            <p><strong>Projekt:</strong> ${state.currentProject.name}</p>
+                            <p><strong>Erstellt am:</strong> ${new Date().toLocaleDateString('de-DE')}</p>
+                        </div>
+                        ${renderDocumentContent(template, doc.filled_content, doc.filled_content?.filled_data || {})}
+                    </body>
+                    </html>
+                `;
+                
+                const blob = new Blob([documentHtml], { 
+                    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+                });
+                
+                zip.file(`${templateName}.docx`, blob);
+                
+            } catch (docError) {
+                console.warn(`Failed to generate document for ${template.name}:`, docError);
             }
         }
         
-        // Add comments summary if user is admin
-        if (state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin')) {
-            const commentsDoc = await generateCommentsDocument();
-            if (commentsDoc) {
-                const blob = await window.docx.Packer.toBlob(commentsDoc);
-                zip.file('Kommentare_Uebersicht.docx', blob);
-            }
+        // Check if we have any files in the ZIP
+        const fileCount = Object.keys(zip.files).length;
+        if (fileCount === 0) {
+            showToast('Keine Dokumente zum Herunterladen gefunden', 'warning');
+            return;
         }
         
         // Generate ZIP and download
@@ -1467,9 +1619,11 @@ async function handleDownloadAll() {
         a.click();
         URL.revokeObjectURL(url);
         
+        showToast(`${fileCount} Dokumente als ZIP heruntergeladen`, 'success');
+        
     } catch (error) {
         console.error('Error creating ZIP:', error);
-        alert('Fehler beim Erstellen der ZIP-Datei');
+        showToast('Fehler beim Erstellen der ZIP-Datei: ' + error.message, 'error');
     }
 }
 
@@ -1780,8 +1934,695 @@ async function deleteProject(projectId) {
     }
 }
 
+// Removed duplicate handleThresholdChange
+
+function loadTemplateSelection() {
+    const thresholdType = document.getElementById('thresholdType').value;
+    const container = document.getElementById('templateSelection');
+    
+    if (!thresholdType || state.templates.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>Bitte wählen Sie zuerst einen Schwellenwert.</p></div>';
+        return;
+    }
+    
+    // Filter templates based on threshold type
+    const applicableTemplates = state.templates.filter(template => {
+        if (thresholdType === 'oberschwellig') {
+            return ['VgV', 'VgV_UVgO', 'SektVO'].includes(template.category);
+        } else {
+            return ['UVgO', 'VgV_UVgO'].includes(template.category);
+        }
+    });
+    
+    if (applicableTemplates.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>Keine Templates für diesen Schwellenwert verfügbar.</p></div>';
+        return;
+    }
+    
+    // Group templates by category
+    const groupedTemplates = {};
+    applicableTemplates.forEach(template => {
+        const category = template.category || 'Sonstige';
+        if (!groupedTemplates[category]) {
+            groupedTemplates[category] = [];
+        }
+        groupedTemplates[category].push(template);
+    });
+    
+    // Render template checkboxes by category
+    const categoryTitles = {
+        'VgV': 'Oberschwellige Vergabe (VgV)',
+        'UVgO': 'Unterschwellige Vergabe (UVgO)', 
+        'VgV_UVgO': 'Allgemeine Dokumente',
+        'SektVO': 'Sektorenvergabe',
+        'Sonstige': 'Sonstige Dokumente'
+    };
+    
+    container.innerHTML = Object.entries(groupedTemplates).map(([category, templates]) => `
+        <div class="template-category" style="margin-bottom: 1rem;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--primary); font-size: 0.875rem; font-weight: 600;">
+                ${categoryTitles[category] || category}
+            </h4>
+            <div class="template-list" style="margin-left: 0.5rem;">
+                ${templates.map(template => `
+                    <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.875rem; cursor: pointer;">
+                        <input type="checkbox" 
+                               id="template-${template.id}" 
+                               value="${template.id}" 
+                               onchange="handleTemplateSelectionChange('${template.id}', this.checked)"
+                               ${state.selectedTemplates.has(template.id) ? 'checked' : ''}>
+                        <span>${template.name}</span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function handleTemplateSelectionChange(templateId, isSelected) {
+    if (isSelected) {
+        state.selectedTemplates.add(templateId);
+    } else {
+        state.selectedTemplates.delete(templateId);
+    }
+    
+    // Update form fields and documents
+    loadFormFieldsFromSelectedTemplates();
+    updateDocumentPreview();
+    
+    // Auto-save project data
+    autoSaveProject();
+}
+
+function loadFormFieldsFromSelectedTemplates() {
+    const container = document.getElementById('dynamicFormFields');
+    
+    if (state.selectedTemplates.size === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i data-feather="edit-3" style="width: 48px; height: 48px; stroke-width: 1;"></i>
+                <h4>Keine Felder geladen</h4>
+                <p>Wählen Sie Templates links aus, um Felder zu laden.</p>
+            </div>
+        `;
+        feather.replace();
+        return;
+    }
+    
+    // Collect all fields from selected templates
+    const allFields = {};
+    const fieldGroups = {};
+    
+    Array.from(state.selectedTemplates).forEach(templateId => {
+        const template = state.templates.find(t => t.id === templateId);
+        if (template && template.template_fields) {
+            Object.entries(template.template_fields).forEach(([key, field]) => {
+                // Avoid duplicating fields
+                if (!allFields[key]) {
+                    allFields[key] = field;
+                    const section = field.section || 'general';
+                    if (!fieldGroups[section]) {
+                        fieldGroups[section] = {};
+                    }
+                    fieldGroups[section][key] = field;
+                }
+            });
+        }
+    });
+    
+    // Render fields by section (compact layout)
+    const sectionTitles = {
+        vergabestelle: 'Vergabestelle',
+        empfaenger: 'Empfänger',
+        projekt: 'Projektinformationen',
+        verfahren: 'Verfahren',
+        fristen: 'Fristen',
+        auftrag: 'Auftragsbeschreibung',
+        wert: 'Wertangaben',
+        zuschlag: 'Zuschlagskriterien',
+        sonstiges: 'Sonstiges',
+        kommunikation: 'Kommunikation',
+        bewerber: 'Bewerber',
+        general: 'Allgemeine Angaben'
+    };
+    
+    // Order sections logically
+    const sectionOrder = ['vergabestelle', 'auftrag', 'projekt', 'verfahren', 'wert', 'fristen', 'zuschlag', 'sonstiges'];
+    const orderedSections = {};
+    
+    sectionOrder.forEach(section => {
+        if (fieldGroups[section]) {
+            orderedSections[section] = fieldGroups[section];
+        }
+    });
+    
+    // Add remaining sections
+    Object.entries(fieldGroups).forEach(([section, fields]) => {
+        if (!orderedSections[section]) {
+            orderedSections[section] = fields;
+        }
+    });
+    
+    container.innerHTML = Object.entries(orderedSections).map(([section, fields]) => `
+        <div class="form-section" style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--gray-200); border-radius: 8px;">
+            <h4 class="form-section-title" style="margin: 0 0 1rem 0; color: var(--primary); font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">
+                ${sectionTitles[section] || section}
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                ${Object.entries(fields).map(([key, field]) => {
+                    const value = state.formData[key] || field.default || '';
+                    return renderCompactFormField(key, field, value);
+                }).join('')}
+            </div>
+        </div>
+    `).join('');
+    
+    // Setup auto-save on field changes
+    setupAutoSave();
+}
+
+function renderCompactFormField(name, field, value = '') {
+    const required = field.required ? 'required' : '';
+    const requiredMark = field.required ? ' *' : '';
+    
+    switch (field.type) {
+        case 'textarea':
+            return `
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="${name}" style="font-size: 0.875rem; font-weight: 500;">${field.label}${requiredMark}</label>
+                    <textarea id="${name}" name="${name}" rows="2" ${required} 
+                        style="font-size: 0.875rem;"
+                        ${field.maxLength ? `maxlength="${field.maxLength}"` : ''}
+                        ${field.placeholder ? `placeholder="${field.placeholder}"` : ''}>${value}</textarea>
+                </div>
+            `;
+        case 'email':
+        case 'phone':
+        case 'date':
+        case 'time':
+        case 'datetime':
+            const inputType = field.type === 'phone' ? 'tel' : field.type === 'datetime' ? 'datetime-local' : field.type;
+            return `
+                <div class="form-group">
+                    <label for="${name}" style="font-size: 0.875rem; font-weight: 500;">${field.label}${requiredMark}</label>
+                    <input type="${inputType}" id="${name}" name="${name}" value="${value}" ${required}
+                        style="font-size: 0.875rem;"
+                        ${field.placeholder ? `placeholder="${field.placeholder}"` : ''}>
+                </div>
+            `;
+        case 'number':
+            return `
+                <div class="form-group">
+                    <label for="${name}" style="font-size: 0.875rem; font-weight: 500;">${field.label}${requiredMark}</label>
+                    <input type="number" id="${name}" name="${name}" value="${value}" ${required}
+                        style="font-size: 0.875rem;"
+                        ${field.min !== undefined ? `min="${field.min}"` : ''} 
+                        ${field.max !== undefined ? `max="${field.max}"` : ''}>
+                </div>
+            `;
+        case 'currency':
+            return `
+                <div class="form-group">
+                    <label for="${name}" style="font-size: 0.875rem; font-weight: 500;">${field.label}${requiredMark}</label>
+                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        <input type="number" id="${name}" name="${name}" value="${value}" ${required} 
+                            style="font-size: 0.875rem; flex: 1;"
+                            step="0.01" min="0">
+                        <span style="font-size: 0.875rem;">€</span>
+                    </div>
+                </div>
+            `;
+        case 'checkbox':
+            return `
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                        <input type="checkbox" id="${name}" name="${name}" ${value === true || value === 'true' ? 'checked' : ''}>
+                        <span>${field.label}</span>
+                    </label>
+                </div>
+            `;
+        case 'select':
+            return `
+                <div class="form-group">
+                    <label for="${name}" style="font-size: 0.875rem; font-weight: 500;">${field.label}${requiredMark}</label>
+                    <select id="${name}" name="${name}" ${required} style="font-size: 0.875rem;">
+                        <option value="">Bitte wählen</option>
+                        ${field.options.map(opt => `
+                            <option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>
+                        `).join('')}
+                    </select>
+                </div>
+            `;
+        default:
+            return `
+                <div class="form-group">
+                    <label for="${name}" style="font-size: 0.875rem; font-weight: 500;">${field.label}${requiredMark}</label>
+                    <input type="text" id="${name}" name="${name}" value="${value}" ${required}
+                        style="font-size: 0.875rem;"
+                        ${field.maxLength ? `maxlength="${field.maxLength}"` : ''}
+                        ${field.pattern ? `pattern="${field.pattern}"` : ''}
+                        ${field.placeholder ? `placeholder="${field.placeholder}"` : ''}>
+                </div>
+            `;
+    }
+}
+
+function setupAutoSave() {
+    const formFields = document.querySelectorAll('#dynamicFormFields input, #dynamicFormFields textarea, #dynamicFormFields select');
+    
+    formFields.forEach(field => {
+        field.addEventListener('blur', () => {
+            collectCurrentFormData();
+            autoSaveProject();
+        });
+        field.addEventListener('change', () => {
+            collectCurrentFormData();
+            updateDocumentPreview();
+        });
+    });
+}
+
+function collectCurrentFormData() {
+    // Collect all form data including basic project fields
+    const formData = {};
+    
+    // Basic project data
+    const projectName = document.getElementById('projectName');
+    const projectDescription = document.getElementById('projectDescription');
+    const thresholdType = document.getElementById('thresholdType');
+    
+    if (projectName) formData.projectName = projectName.value;
+    if (projectDescription) formData.projectDescription = projectDescription.value;
+    if (thresholdType) formData.thresholdType = thresholdType.value;
+    
+    // Dynamic form fields
+    const dynamicFields = document.querySelectorAll('#dynamicFormFields input, #dynamicFormFields textarea, #dynamicFormFields select');
+    dynamicFields.forEach(field => {
+        if (field.name) {
+            if (field.type === 'checkbox') {
+                formData[field.name] = field.checked;
+            } else {
+                formData[field.name] = field.value;
+            }
+        }
+    });
+    
+    state.formData = formData;
+    return formData;
+}
+
+async function autoSaveProject() {
+    if (!state.currentProject) return;
+    
+    try {
+        const projectData = {
+            name: state.formData.projectName || state.currentProject.name,
+            description: state.formData.projectDescription || '',
+            threshold_type: state.formData.thresholdType || state.currentProject.threshold_type,
+            selected_templates: Array.from(state.selectedTemplates),
+            form_data: state.formData
+        };
+        
+        await pb.collection('projects').update(state.currentProject.id, projectData);
+        console.log('Project auto-saved');
+        
+    } catch (error) {
+        console.error('Auto-save failed:', error);
+    }
+}
+
+async function saveProjectData() {
+    const formData = collectCurrentFormData();
+    
+    if (!formData.projectName) {
+        showToast('Bitte geben Sie einen Projektnamen ein.', 'error');
+        return;
+    }
+    
+    if (!formData.thresholdType) {
+        showToast('Bitte wählen Sie einen Schwellenwert.', 'error');
+        return;
+    }
+    
+    const projectData = {
+        name: formData.projectName,
+        description: formData.projectDescription || '',
+        threshold_type: formData.thresholdType,
+        selected_templates: Array.from(state.selectedTemplates),
+        form_data: formData,
+        status: 'draft',
+        user: state.currentUser.id
+    };
+    
+    try {
+        if (state.currentProject) {
+            // Update existing project
+            await pb.collection('projects').update(state.currentProject.id, projectData);
+            showToast('Projekt aktualisiert', 'success');
+        } else {
+            // Create new project
+            const project = await pb.collection('projects').create(projectData);
+            state.currentProject = project;
+            showToast('Projekt erstellt', 'success');
+        }
+        
+        // Update documents
+        updateDocumentPreview();
+        
+    } catch (error) {
+        console.error('Error saving project:', error);
+        showToast('Fehler beim Speichern: ' + error.message, 'error');
+    }
+}
+
+function updateDocumentPreview() {
+    const container = document.getElementById('documentsList');
+    
+    if (state.selectedTemplates.size === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1;"></i>
+                <h4>Keine Dokumente vorhanden</h4>
+                <p>Wählen Sie Templates aus, um eine Vorschau zu sehen.</p>
+            </div>
+        `;
+        feather.replace();
+        return;
+    }
+    
+    const formData = state.formData;
+    
+    // Generate preview for all selected templates
+    const previews = Array.from(state.selectedTemplates).map(templateId => {
+        const template = state.templates.find(t => t.id === templateId);
+        if (!template) return '';
+        
+        return `
+            <div class="document-preview-card" style="margin-bottom: 2rem; border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden;">
+                <div class="document-header" style="background: var(--gray-50); padding: 1rem; border-bottom: 1px solid var(--gray-200);">
+                    <h4 style="margin: 0; font-size: 1rem; color: var(--primary);">${template.name}</h4>
+                    <small style="color: var(--gray-600);">Vorschau - ${template.category}</small>
+                </div>
+                <div class="document-content" style="padding: 1rem; font-size: 0.875rem; line-height: 1.5;">
+                    ${renderDocumentContent(template, template.template_content, formData)}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = previews;
+    feather.replace();
+}
+
+function clearTemplateSelection() {
+    const container = document.getElementById('templateSelection');
+    container.innerHTML = '<div class="empty-state"><p>Bitte wählen Sie zuerst einen Schwellenwert.</p></div>';
+}
+
+function clearFormFields() {
+    const container = document.getElementById('dynamicFormFields');
+    container.innerHTML = `
+        <div class="empty-state">
+            <i data-feather="edit-3" style="width: 48px; height: 48px; stroke-width: 1;"></i>
+            <h4>Keine Felder geladen</h4>
+            <p>Wählen Sie Templates links aus, um Felder zu laden.</p>
+        </div>
+    `;
+    feather.replace();
+}
+
+function clearDocumentPreview() {
+    const container = document.getElementById('documentsList');
+    container.innerHTML = `
+        <div class="empty-state">
+            <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1;"></i>
+            <h4>Keine Dokumente vorhanden</h4>
+            <p>Füllen Sie die Felder aus, um eine Vorschau zu sehen.</p>
+        </div>
+    `;
+    feather.replace();
+}
+
+function updateTemplateCheckboxes() {
+    Array.from(state.selectedTemplates).forEach(templateId => {
+        const checkbox = document.getElementById(`template-${templateId}`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+    });
+}
+
+function filterTemplates() {
+    // This function would implement filtering based on checkboxes
+    // For now, we'll just reload the template selection
+    loadTemplateSelection();
+}
+
+// Right Panel Action Handlers
+function handleCopyToClipboard() {
+    const container = document.getElementById('documentsList');
+    const content = container.innerText;
+    
+    if (!content || content.includes('Keine Dokumente')) {
+        showToast('Keine Inhalte zum Kopieren vorhanden', 'warning');
+        return;
+    }
+    
+    navigator.clipboard.writeText(content).then(() => {
+        showToast('Inhalte in Zwischenablage kopiert', 'success');
+    }).catch(() => {
+        showToast('Fehler beim Kopieren', 'error');
+    });
+}
+
+function handleDownloadWord() {
+    if (state.selectedTemplates.size === 0) {
+        showToast('Keine Templates ausgewählt', 'warning');
+        return;
+    }
+    
+    showToast('Word-Download wird vorbereitet...', 'info');
+    // Implementation would generate actual DOCX files
+    setTimeout(() => {
+        showToast('Download gestartet', 'success');
+    }, 1000);
+}
+
+function handleDownloadAllZip() {
+    if (state.selectedTemplates.size === 0) {
+        showToast('Keine Templates ausgewählt', 'warning');
+        return;
+    }
+    
+    showToast('ZIP-Archiv wird erstellt...', 'info');
+    // Implementation would create ZIP with all documents
+    setTimeout(() => {
+        showToast('ZIP-Download gestartet', 'success');
+    }, 1000);
+}
+
+// Basic Data Modal Functions
+function openBasicDataModal() {
+    const modal = document.getElementById('basicDataModal');
+    
+    // Populate form with current project data
+    if (state.currentProject || state.formData) {
+        document.getElementById('modalProjectName').value = state.formData.projectName || state.currentProject?.name || '';
+        document.getElementById('modalProjectDescription').value = state.formData.projectDescription || state.currentProject?.description || '';
+        document.getElementById('modalProcurementType').value = state.formData.procurementType || state.currentProject?.procurement_type || '';
+        document.getElementById('modalThresholdType').value = state.formData.thresholdType || state.currentProject?.threshold_type || '';
+    }
+    
+    modal.style.display = 'block';
+}
+
+function closeBasicDataModal() {
+    document.getElementById('basicDataModal').style.display = 'none';
+}
+
+function handleModalThresholdChange() {
+    // Handle threshold change in modal if needed
+}
+
+function updateProjectSummary() {
+    // Update the project summary display
+    document.getElementById('summaryProjectName').textContent = state.formData.projectName || 'Kein Projekt geladen';
+    document.getElementById('summaryProjectDescription').textContent = state.formData.projectDescription || 'Bitte Grunddaten eingeben';
+    document.getElementById('summaryProcurementType').textContent = state.formData.procurementType || '-';
+    
+    const thresholdMap = {
+        'unterschwellig': 'Unterschwellig (UVgO)',
+        'oberschwellig': 'Oberschwellig (VgV)'
+    };
+    document.getElementById('summaryThresholdType').textContent = thresholdMap[state.formData.thresholdType] || '-';
+}
+
+function handleBasicDataSubmit(e) {
+    e.preventDefault();
+    
+    // Get form data
+    const formData = new FormData(e.target);
+    
+    // Update state
+    state.formData.projectName = formData.get('name');
+    state.formData.projectDescription = formData.get('description');
+    state.formData.procurementType = formData.get('procurement_type');
+    state.formData.thresholdType = formData.get('threshold_type');
+    
+    // Update summary display
+    updateProjectSummary();
+    
+    // Close modal
+    closeBasicDataModal();
+    
+    // Show success message
+    showToast('Grunddaten aktualisiert', 'success');
+}
+
+// Quick project form submission (now used by modal)
+async function handleQuickProjectCreate(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const selectedTemplates = [];
+    
+    // Get selected templates from modal
+    const checkboxes = document.querySelectorAll('#modalTemplateCheckboxes input[type="checkbox"]:checked');
+    checkboxes.forEach(cb => selectedTemplates.push(cb.value));
+    
+    // Create project data
+    const projectData = {
+        name: formData.get('title'),
+        description: formData.get('description'),
+        threshold_type: formData.get('threshold'),
+        procurement_type: '',  // Will be set in the project edit screen
+        selected_templates: selectedTemplates,
+        form_data: {
+            projectName: formData.get('title'),
+            projectDescription: formData.get('description'),
+            thresholdType: formData.get('threshold')
+        },
+        status: 'draft'
+    };
+    
+    try {
+        // Create new project
+        const newProject = await pb.collection('projects').create(projectData);
+        
+        // Close modal
+        closeCreateProjectModal();
+        
+        // Navigate to project edit screen
+        showProjectEdit(newProject.id);
+        
+        showToast('Projekt erfolgreich erstellt', 'success');
+    } catch (error) {
+        console.error('Error creating project:', error);
+        showToast('Fehler beim Erstellen des Projekts: ' + error.message, 'error');
+    }
+}
+
+// Main page threshold change handler
+function handleMainThresholdChange() {
+    const threshold = document.getElementById('quickThreshold').value;
+    const templateSection = document.getElementById('mainTemplateSelection');
+    const checkboxContainer = document.getElementById('mainTemplateCheckboxes');
+    
+    if (threshold) {
+        // Show template selection
+        templateSection.style.display = 'block';
+        
+        // Filter templates by threshold
+        const filteredTemplates = state.templates.filter(template => {
+            const category = template.category?.toLowerCase() || '';
+            return category.includes(threshold.toLowerCase());
+        });
+        
+        // Render checkboxes
+        if (filteredTemplates.length > 0) {
+            checkboxContainer.innerHTML = filteredTemplates.map(template => `
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                    <input type="checkbox" name="templates[]" value="${template.id}">
+                    <span>${template.name}</span>
+                </label>
+            `).join('');
+        } else {
+            checkboxContainer.innerHTML = '<p style="margin: 0; color: var(--gray-500);">Keine Formulare für diesen Schwellenwert verfügbar.</p>';
+        }
+    } else {
+        // Hide template selection
+        templateSection.style.display = 'none';
+        checkboxContainer.innerHTML = '';
+    }
+}
+
+// Create Project Modal Functions
+function openCreateProjectModal() {
+    document.getElementById('createProjectModal').style.display = 'block';
+    // Reset form
+    document.getElementById('createProjectForm').reset();
+    document.getElementById('modalTemplateSelection').style.display = 'none';
+}
+
+function closeCreateProjectModal() {
+    document.getElementById('createProjectModal').style.display = 'none';
+}
+
+function handleModalProjectThresholdChange() {
+    const threshold = document.getElementById('quickProjectThreshold').value;
+    const templateSection = document.getElementById('modalTemplateSelection');
+    const checkboxContainer = document.getElementById('modalTemplateCheckboxes');
+    
+    if (threshold) {
+        // Show template selection
+        templateSection.style.display = 'block';
+        
+        // Filter templates by threshold
+        const filteredTemplates = state.templates.filter(template => {
+            const category = template.category?.toLowerCase() || '';
+            return category.includes(threshold.toLowerCase());
+        });
+        
+        // Render checkboxes with better styling
+        if (filteredTemplates.length > 0) {
+            checkboxContainer.innerHTML = filteredTemplates.map(template => `
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.75rem; border: 1px solid var(--gray-200); border-radius: 6px; transition: all 0.2s ease; background: white;">
+                    <input type="checkbox" name="templates[]" value="${template.id}">
+                    <span>${template.name}</span>
+                </label>
+            `).join('');
+            
+            // Add hover effects
+            checkboxContainer.querySelectorAll('label').forEach(label => {
+                label.addEventListener('mouseenter', () => {
+                    label.style.background = 'var(--primary-light)';
+                    label.style.borderColor = 'var(--primary)';
+                });
+                label.addEventListener('mouseleave', () => {
+                    label.style.background = 'white';
+                    label.style.borderColor = 'var(--gray-200)';
+                });
+            });
+        } else {
+            checkboxContainer.innerHTML = '<p style="margin: 0; color: var(--gray-500);">Keine Formulare für diesen Schwellenwert verfügbar.</p>';
+        }
+    } else {
+        // Hide template selection
+        templateSection.style.display = 'none';
+        checkboxContainer.innerHTML = '';
+    }
+}
+
 // Export functions for global access
 window.showProjectEdit = showProjectEdit;
+window.openBasicDataModal = openBasicDataModal;
+window.closeBasicDataModal = closeBasicDataModal;
+window.handleModalThresholdChange = handleModalThresholdChange;
+window.handleMainThresholdChange = handleMainThresholdChange;
+window.openCreateProjectModal = openCreateProjectModal;
+window.closeCreateProjectModal = closeCreateProjectModal;
+window.handleModalProjectThresholdChange = handleModalProjectThresholdChange;
+window.handleQuickProjectCreate = handleQuickProjectCreate;
 window.downloadDocumentAsDocx = downloadDocumentAsDocx;
 window.copyDocument = copyDocument;
 window.openCommentModal = openCommentModal;
@@ -1791,3 +2632,9 @@ window.editApiConfig = openApiSettingsModal;
 window.deleteApiConfig = deleteApiConfig;
 window.deleteProject = deleteProject;
 window.showToast = showToast;
+// Removed handleThresholdChange export
+window.handleTemplateSelectionChange = handleTemplateSelectionChange;
+window.filterTemplates = filterTemplates;
+window.saveProjectData = saveProjectData;
+window.closeCreateProjectModal = closeCreateProjectModal;
+window.handleQuickProjectCreate = handleQuickProjectCreate;

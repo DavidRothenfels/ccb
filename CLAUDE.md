@@ -95,6 +95,12 @@ http://localhost:8091/test/test_frontend.html
 - Use `$app.dao()` for database access
 - v0.28 API: `onRecordCreate((e) => { e.next() })` pattern
 
+### PocketBase Database Modifications
+**IMPORTANT**: See `pb.md` for detailed instructions on direct database modifications
+- When migrations fail, use direct SQLite modifications as documented in pb.md
+- Always backup before direct database changes
+- Common issues like field type conversions are documented there
+
 ### Database Operations in Hooks
 ```javascript
 // Find record

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Filter Syntax</title>
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .test { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Testing Different Filter Syntaxes</h1>
+    <div id="output"></div>
+    
+    <script>
+        const pb = new PocketBase('http://localhost:8091');
+        const output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            output.appendChild(div);
+        }
+        
+        async function testFilter(name, filter) {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test';
+            output.appendChild(testDiv);
+            
+            const log2 = (msg, type) => {
+                const div = document.createElement('div');
+                div.className = type;
+                div.innerHTML = msg;
+                testDiv.appendChild(div);
+            };
+            
+            log2(`<strong>Test: ${name}</strong>`);
+            log2(`Filter: <code>${filter}</code>`);
+            
+            try {
+                const result = await pb.collection('projects').getList(1, 50, {
+                    filter: filter,
+                    sort: '-created'
+                });
+                log2(`✓ Success! Found ${result.totalItems} items`, 'success');
+                return true;
+            } catch (error) {
+                log2(`✗ Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function runTests() {
+            // Login first
+            try {
+                const authData = await pb.collection('users').authWithPassword(
+                    'user@citychallenge.berlin',
+                    'citychallenge2025'
+                );
+                log(`✓ Logged in as ${authData.record.email} (ID: ${authData.record.id})`, 'success');
+            } catch (error) {
+                log(`✗ Login failed: ${error.message}`, 'error');
+                return;
+            }
+            
+            const userId = pb.authStore.model.id;
+            log(`<br>Testing filters for user ID: ${userId}<br>`);
+            
+            // Test different filter syntaxes
+            const filters = [
+                { name: 'With spaces and quotes', filter: `user = "${userId}"` },
+                { name: 'No spaces with quotes', filter: `user="${userId}"` },
+                { name: 'No quotes', filter: `user=${userId}` },
+                { name: 'Single quotes', filter: `user='${userId}'` },
+                { name: 'With spaces no quotes', filter: `user = ${userId}` },
+                { name: 'Double equals', filter: `user=="${userId}"` },
+                { name: 'Backticks', filter: `user=\`${userId}\`` },
+                { name: 'No filter (all projects)', filter: '' }
+            ];
+            
+            for (const f of filters) {
+                await testFilter(f.name, f.filter);
+            }
+            
+            // Also test raw API
+            log('<br><strong>Testing Raw API with encoded filter:</strong>');
+            const encodedFilter = encodeURIComponent(`user="${userId}"`);
+            try {
+                const response = await fetch(`/api/collections/projects/records?filter=${encodedFilter}`, {
+                    headers: {
+                        'Authorization': pb.authStore.token
+                    }
+                });
+                const data = await response.json();
+                log(`✓ Raw API Success! Found ${data.totalItems} items`, 'success');
+            } catch (error) {
+                log(`✗ Raw API Error: ${error.message}`, 'error');
+            }
+        }
+        
+        runTests();
+    </script>
+</body>
+</html>

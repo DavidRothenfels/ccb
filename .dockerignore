@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+.github
+
+# Documentation
+*.md
+.coolify
+LICENSE
+
+# Development
+test/
+*.log
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules (if any)
+node_modules/
+
+# Build artifacts
+*.zip
+*.tar.gz
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Temporary files
+*.tmp
+*.temp
+*~

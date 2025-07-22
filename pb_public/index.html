@@ -13,14 +13,10 @@
             <div class="login-container">
                 <div class="login-box">
                     <div style="text-align: center; margin-bottom: 2rem;">
-                        <div class="logo" style="justify-content: center; margin-bottom: 1rem;">
-                            <i data-feather="layers" style="color: var(--primary); width: 48px; height: 48px;"></i>
-                            <span>City<span style="color: #374151;">Challenge</span></span>
-                        </div>
-                        <p class="subtitle">Vergabe-Tool Berlin 2025</p>
+                        <h2 style="margin: 0; font-size: 1.75rem; font-weight: 600;">123Vergabe anmelden</h2>
                     </div>
                     
-                    <form id="loginForm">
+                    <form id="loginForm" method="post">
                         <div class="form-group">
                             <label for="email">E-Mail</label>
                             <input type="email" id="email" name="email" required placeholder="ihre.email@berlin.de">
@@ -62,13 +58,13 @@
                         </div>
                     </nav>
                     
-                    <nav class="nav-section" id="adminNav" style="display:none;">
-                        <h3>ADMINISTRATION</h3>
+                    <!-- Settings section for admin -->
+                    <div class="settings-section" id="adminSettings" style="display:none; margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--gray-light);">
                         <div class="nav-item" data-section="admin">
                             <i data-feather="settings"></i>
-                            <span>Verwaltung</span>
+                            <span>Einstellungen</span>
                         </div>
-                    </nav>
+                    </div>
                     
                     <div class="user-info">
                         <h4 id="sidebarUserName">Benutzer</h4>
@@ -76,6 +72,9 @@
                         <button class="btn btn-secondary" id="logoutBtn" style="width: 100%;">
                             <i data-feather="log-out"></i>
                             <span>Abmelden</span>
+                        </button>
+                        <button class="btn btn-icon" id="settingsBtn" style="width: 100%; margin-top: 0.5rem; background: transparent; border: 1px solid var(--gray-light); padding: 0.75rem;">
+                            <i data-feather="settings" style="width: 20px; height: 20px;"></i>
                         </button>
                     </div>
                 </aside>
@@ -85,7 +84,7 @@
                     <div class="header">
                         <h1 id="pageTitle">Meine Projekte</h1>
                         <div class="header-actions" id="headerActions">
-                            <button id="newProjectBtn" class="btn btn-primary">
+                            <button id="newProjectBtn" class="btn btn-primary" onclick="openCreateProjectModal()">
                                 <i data-feather="plus"></i>
                                 <span>Neues Projekt</span>
                             </button>
@@ -111,10 +110,6 @@
                         
                         <!-- Admin Section -->
                         <section id="adminSection" class="section">
-                            <div class="admin-tabs" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-                                <button class="btn btn-secondary tab-btn active" data-tab="comments">Kommentare</button>
-                                <button class="btn btn-secondary tab-btn" data-tab="api">API Konfiguration</button>
-                            </div>
                             <div id="adminContent" class="card">
                                 <!-- Admin content will be loaded here -->
                             </div>
@@ -141,37 +136,30 @@
                     
                     <div class="panel-content">
                         <form id="projectForm">
+                            <!-- Project Summary Card -->
                             <div class="card">
                                 <div class="card-header">
-                                    <i data-feather="edit-3"></i>
-                                    <h2>Grunddaten</h2>
+                                    <i data-feather="folder"></i>
+                                    <h2>Projekt-Übersicht</h2>
+                                    <button type="button" class="btn btn-small btn-secondary" onclick="openBasicDataModal()" style="margin-left: auto;">
+                                        <i data-feather="edit"></i>
+                                        <span>Grunddaten bearbeiten</span>
+                                    </button>
                                 </div>
                                 <div class="card-body">
-                                    <div class="form-group">
-                                        <label for="projectName">Projektname</label>
-                                        <input type="text" id="projectName" name="name" required placeholder="z.B. Büromaterial Beschaffung 2025">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="projectDescription">Beschreibung</label>
-                                        <textarea id="projectDescription" name="description" rows="3" placeholder="Kurze Beschreibung des Vergabeprojekts..."></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="procurementType">Vergabeart</label>
-                                        <select id="procurementType" name="procurement_type" required>
-                                            <option value="">Bitte wählen</option>
-                                            <option value="Liefer">Lieferleistung</option>
-                                            <option value="Dienst">Dienstleistung</option>
-                                            <option value="Bau">Bauleistung</option>
-                                            <option value="Freiberuflich">Freiberufliche Leistung</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="thresholdType">Schwellenwert</label>
-                                        <select id="thresholdType" name="threshold_type" required onchange="handleThresholdChange()">
-                                            <option value="">Bitte wählen</option>
-                                            <option value="unterschwellig">Unterschwellig (UVgO)</option>
-                                            <option value="oberschwellig">Oberschwellig (VgV)</option>
-                                        </select>
+                                    <div id="projectSummary" style="padding: 1rem; background: var(--gray-50); border-radius: 8px;">
+                                        <p style="margin: 0; font-weight: 600; font-size: 1.125rem;" id="summaryProjectName">Kein Projekt geladen</p>
+                                        <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);" id="summaryProjectDescription">Bitte Grunddaten eingeben</p>
+                                        <div style="display: flex; gap: 2rem; margin-top: 1rem;">
+                                            <div>
+                                                <span style="font-size: 0.875rem; color: var(--gray-500);">Vergabeart:</span>
+                                                <span style="font-weight: 500;" id="summaryProcurementType">-</span>
+                                            </div>
+                                            <div>
+                                                <span style="font-size: 0.875rem; color: var(--gray-500);">Schwellenwert:</span>
+                                                <span style="font-weight: 500;" id="summaryThresholdType">-</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -215,19 +203,11 @@
                     </div>
                     
                     <div class="panel-content">
-                        <!-- Template Selector -->
-                        <div class="form-group" style="margin-bottom: 1.5rem;">
-                            <label for="templateSelector">Vorlage auswählen:</label>
-                            <select id="templateSelector" class="form-control" style="width: 100%;">
-                                <option value="">Bitte wählen Sie eine Vorlage...</option>
-                            </select>
-                        </div>
-                        
                         <div id="documentsList" class="documents-container">
                             <div class="empty-state">
                                 <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1;"></i>
-                                <h3>Keine Dokumente vorhanden</h3>
-                                <p>Füllen Sie das Formular aus und speichern Sie, um Dokumente zu generieren.</p>
+                                <h4>Keine Dokumente vorhanden</h4>
+                                <p>Geben Sie Projektdaten ein und speichern Sie, um Dokumente zu generieren.</p>
                             </div>
                         </div>
                     </div>
@@ -236,6 +216,49 @@
         </div>
     </div>
     
+    <!-- Create Project Modal -->
+    <div id="createProjectModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0;">Neues Projekt erstellen</h3>
+                <button class="close-btn" onclick="closeCreateProjectModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <form id="createProjectForm" onsubmit="handleQuickProjectCreate(event)">
+                <div class="form-group">
+                    <label for="quickProjectName">Titel *</label>
+                    <input type="text" id="quickProjectName" name="title" required placeholder="z.B. Büromaterial Beschaffung 2025">
+                </div>
+                <div class="form-group">
+                    <label for="quickProjectDescription">Beschreibung</label>
+                    <textarea id="quickProjectDescription" name="description" rows="2" placeholder="Kurze Beschreibung des Projekts"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="quickProjectThreshold">Schwellenwert *</label>
+                    <select id="quickProjectThreshold" name="threshold" required onchange="handleModalProjectThresholdChange()">
+                        <option value="">Bitte wählen</option>
+                        <option value="unterschwellig">Unterschwellig (UVgO)</option>
+                        <option value="oberschwellig">Oberschwellig (VgV)</option>
+                    </select>
+                </div>
+                
+                <!-- Dynamic Template Selection Area -->
+                <div id="modalTemplateSelection" style="display: none;">
+                    <div class="form-group">
+                        <label>Erforderliche Formulare</label>
+                        <div id="modalTemplateCheckboxes" style="display: grid; gap: 0.5rem; padding: 1rem; background: var(--gray-50); border-radius: 8px; max-height: 300px; overflow-y: auto;">
+                            <!-- Template checkboxes will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" onclick="closeCreateProjectModal()" class="btn btn-secondary">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Projekt anlegen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Comment Modal -->
     <div id="commentModal" class="modal">
         <div class="modal-content">
@@ -263,6 +286,48 @@
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Kommentar speichern</button>
                     <button type="button" class="btn btn-secondary close-btn">Abbrechen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Basic Data Modal (Grunddaten Popup) -->
+    <div id="basicDataModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0;">Grunddaten bearbeiten</h3>
+                <button class="close-btn" onclick="closeBasicDataModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <form id="basicDataForm">
+                <div class="form-group">
+                    <label for="modalProjectName">Projektname</label>
+                    <input type="text" id="modalProjectName" name="name" required placeholder="z.B. Büromaterial Beschaffung 2025">
+                </div>
+                <div class="form-group">
+                    <label for="modalProjectDescription">Beschreibung</label>
+                    <textarea id="modalProjectDescription" name="description" rows="3" placeholder="Kurze Beschreibung des Vergabeprojekts..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="modalProcurementType">Vergabeart</label>
+                    <select id="modalProcurementType" name="procurement_type" required>
+                        <option value="">Bitte wählen</option>
+                        <option value="Liefer">Lieferleistung</option>
+                        <option value="Dienst">Dienstleistung</option>
+                        <option value="Bau">Bauleistung</option>
+                        <option value="Freiberuflich">Freiberufliche Leistung</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modalThresholdType">Schwellenwert</label>
+                    <select id="modalThresholdType" name="threshold_type" required onchange="handleModalThresholdChange()">
+                        <option value="">Bitte wählen</option>
+                        <option value="unterschwellig">Unterschwellig (UVgO)</option>
+                        <option value="oberschwellig">Oberschwellig (VgV)</option>
+                    </select>
+                </div>
+                <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" onclick="closeBasicDataModal()" class="btn btn-secondary">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Übernehmen</button>
                 </div>
             </form>
         </div>
@@ -316,7 +381,6 @@
     
     <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
-    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
     <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="docx-generator.js"></script>
     <script src="app.js"></script>

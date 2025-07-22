@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  citychallenge:
+    image: ghcr.io/${GITHUB_REPOSITORY:-citychallenge/citychallenge}:latest
+    container_name: citychallenge
+    restart: unless-stopped
+    volumes:
+      - citychallenge_data:/app/pb_data
+      - citychallenge_logs:/app/pb_logs
+      - citychallenge_templates:/app/templates
+    environment:
+      - TZ=Europe/Berlin
+      - PORT=8091
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      # Coolify managed
+      - "coolify.managed=true"
+      - "coolify.type=application"
+      - "coolify.name=citychallenge"
+      - "coolify.description=CityChallenge Vergabe-Vorbereitungs-Tool"
+      # Traefik configuration for Coolify
+      - "traefik.enable=true"
+      - "traefik.http.routers.citychallenge-${COOLIFY_CONTAINER_NAME}.rule=Host(`${SERVICE_FQDN_8091}`)"
+      - "traefik.http.routers.citychallenge-${COOLIFY_CONTAINER_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.citychallenge-${COOLIFY_CONTAINER_NAME}.tls=true"
+      - "traefik.http.routers.citychallenge-${COOLIFY_CONTAINER_NAME}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.citychallenge-${COOLIFY_CONTAINER_NAME}.loadbalancer.server.port=8091"
+      - "traefik.http.services.citychallenge-${COOLIFY_CONTAINER_NAME}.loadbalancer.server.scheme=http"
+      # Additional headers
+      - "traefik.http.middlewares.citychallenge-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.citychallenge-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.citychallenge-headers.headers.browserXssFilter=true"
+      - "traefik.http.routers.citychallenge-${COOLIFY_CONTAINER_NAME}.middlewares=citychallenge-headers"
+
+volumes:
+  citychallenge_data:
+    name: citychallenge_data
+  citychallenge_logs:
+    name: citychallenge_logs
+  citychallenge_templates:
+    name: citychallenge_templates

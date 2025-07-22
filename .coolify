@@ -1,0 +1,65 @@
+# CityChallenge Coolify Deployment
+
+This application is configured for deployment on Coolify with automated CI/CD via GitHub Actions.
+
+## Deployment Configuration
+
+- **Container Registry**: GitHub Container Registry (ghcr.io)
+- **Image**: `ghcr.io/[your-github-username]/citychallenge:latest`
+- **Port**: 8091
+- **Health Check**: `/api/health`
+
+## Coolify Setup
+
+1. **Create New Resource**
+   - Type: Docker Compose
+   - Source: Public Repository
+   - Repository: Your GitHub repository URL
+   - Branch: main
+   - Docker Compose Location: `/docker-compose.coolify.yml`
+
+2. **Environment Variables**
+   - No special environment variables required
+   - Coolify automatically provides `SERVICE_FQDN_8091` for routing
+
+3. **Persistent Storage**
+   - `/app/pb_data` - SQLite database and file storage
+   - `/app/pb_logs` - Application logs
+   - `/app/templates` - Document templates
+
+## GitHub Actions Configuration
+
+Required secrets in GitHub repository settings:
+- `COOLIFY_WEBHOOK_URL` - Webhook URL from Coolify deployment settings
+
+The GitHub token for container registry access is automatically provided.
+
+## Deployment Process
+
+1. Push code to main branch
+2. GitHub Actions builds multi-arch Docker image
+3. Image is pushed to GitHub Container Registry
+4. Coolify webhook triggers deployment
+5. New container is deployed with zero downtime
+
+## Local Testing
+
+```bash
+# Build locally
+docker build -t citychallenge:local .
+
+# Run with docker-compose
+docker-compose up -d
+
+# Access at http://localhost:8091
+```
+
+## Monitoring
+
+- Health endpoint: `https://your-domain.com/api/health`
+- Logs available in Coolify dashboard
+- Container metrics in Coolify monitoring
+
+## Rollback
+
+Coolify maintains previous deployments. Use the Coolify dashboard to rollback if needed.

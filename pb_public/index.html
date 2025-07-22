@@ -167,7 +167,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="thresholdType">Schwellenwert</label>
-                                        <select id="thresholdType" name="threshold_type" required>
+                                        <select id="thresholdType" name="threshold_type" required onchange="handleThresholdChange()">
                                             <option value="">Bitte wählen</option>
                                             <option value="unterschwellig">Unterschwellig (UVgO)</option>
                                             <option value="oberschwellig">Oberschwellig (VgV)</option>
@@ -215,6 +215,14 @@
                     </div>
                     
                     <div class="panel-content">
+                        <!-- Template Selector -->
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label for="templateSelector">Vorlage auswählen:</label>
+                            <select id="templateSelector" class="form-control" style="width: 100%;">
+                                <option value="">Bitte wählen Sie eine Vorlage...</option>
+                            </select>
+                        </div>
+                        
                         <div id="documentsList" class="documents-container">
                             <div class="empty-state">
                                 <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1;"></i>

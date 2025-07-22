@@ -8,7 +8,8 @@ const state = {
     templates: [],
     projects: [],
     documents: [],
-    comments: []
+    comments: [],
+    selectedTemplateId: null
 };
 
 // DOM Elements
@@ -96,6 +97,12 @@ function setupEventListeners() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', handleAdminTab);
     });
+    
+    // Template selector
+    const templateSelector = document.getElementById('templateSelector');
+    if (templateSelector) {
+        templateSelector.addEventListener('change', handleTemplateChange);
+    }
 }
 
 // Authentication
@@ -310,6 +317,9 @@ async function loadProject(projectId) {
         document.getElementById('procurementType').value = project.procurement_type;
         document.getElementById('thresholdType').value = project.threshold_type;
         
+        // Populate template selector based on threshold type
+        populateTemplateSelector();
+        
         // Load dynamic fields with saved data
         loadDynamicFields(project.form_data);
         
@@ -393,22 +403,56 @@ async function loadTemplates() {
         });
         
         state.templates = records.items;
+        
+        // Populate template selector dropdown
+        populateTemplateSelector();
     } catch (error) {
         console.error('Error loading templates:', error);
+        
+        // Show error message to user
+        const selector = document.getElementById('templateSelector');
+        if (selector) {
+            selector.disabled = true;
+            selector.innerHTML = '<option value="">Fehler beim Laden der Vorlagen</option>';
+        }
+        
+        // Show error in fields and documents area
+        const fieldsContainer = document.getElementById('dynamicFormFields');
+        if (fieldsContainer) {
+            fieldsContainer.innerHTML = '<div class="empty-state"><p style="color: var(--danger);">Fehler beim Laden der Vorlagen. Bitte aktualisieren Sie die Seite.</p></div>';
+        }
+        
+        const docsContainer = document.getElementById('documentsList');
+        if (docsContainer) {
+            docsContainer.innerHTML = '<div class="empty-state"><p style="color: var(--danger);">Fehler beim Laden der Vorlagen.</p></div>';
+        }
     }
 }
 
-// Dynamic Form Fields
-function loadDynamicFields(savedData = {}) {
-    const container = document.getElementById('dynamicFormFields');
+// Populate template selector dropdown
+function populateTemplateSelector() {
+    const selector = document.getElementById('templateSelector');
+    if (!selector) return;
     
-    // Get threshold type to filter templates
-    const thresholdType = document.getElementById('thresholdType').value;
+    // Clear existing options
+    selector.innerHTML = '<option value="">Bitte wählen Sie eine Vorlage...</option>';
     
-    // Filter templates based on threshold type
+    // Get applicable templates based on threshold type
+    const thresholdType = document.getElementById('thresholdType')?.value;
+    
+    // If no threshold type selected, show instruction
+    if (!thresholdType) {
+        selector.disabled = true;
+        selector.innerHTML = '<option value="">Bitte zuerst Schwellenwert wählen</option>';
+        // Clear fields and documents
+        document.getElementById('dynamicFormFields').innerHTML = '<div class="empty-state"><p>Bitte wählen Sie zuerst einen Schwellenwert.</p></div>';
+        document.getElementById('documentsList').innerHTML = '<div class="empty-state"><p>Bitte wählen Sie zuerst einen Schwellenwert und eine Vorlage.</p></div>';
+        return;
+    }
+    
+    selector.disabled = false;
+    
     const applicableTemplates = state.templates.filter(template => {
-        if (!thresholdType) return true; // Show all if nothing selected
-        
         if (thresholdType === 'oberschwellig') {
             return ['VgV', 'VgV_UVgO', 'SektVO'].includes(template.category);
         } else {
@@ -416,21 +460,92 @@ function loadDynamicFields(savedData = {}) {
         }
     });
     
-    // Get all unique fields from applicable templates
+    // Handle no templates available
+    if (applicableTemplates.length === 0) {
+        selector.disabled = true;
+        selector.innerHTML = '<option value="">Keine Vorlagen für diesen Schwellenwert verfügbar</option>';
+        // Clear fields and documents
+        document.getElementById('dynamicFormFields').innerHTML = '<div class="empty-state"><p>Keine Vorlagen für diesen Schwellenwert verfügbar.</p></div>';
+        document.getElementById('documentsList').innerHTML = '<div class="empty-state"><p>Keine Vorlagen verfügbar.</p></div>';
+        return;
+    }
+    
+    // Add options for each applicable template
+    applicableTemplates.forEach(template => {
+        const option = document.createElement('option');
+        option.value = template.id;
+        option.textContent = template.name;
+        selector.appendChild(option);
+    });
+    
+    // Select first template by default if available
+    if (applicableTemplates.length > 0) {
+        // Check if previously selected template is still available
+        const previouslySelected = applicableTemplates.find(t => t.id === state.selectedTemplateId);
+        if (previouslySelected) {
+            selector.value = previouslySelected.id;
+        } else {
+            selector.value = applicableTemplates[0].id;
+            state.selectedTemplateId = applicableTemplates[0].id;
+        }
+        // Trigger change event to load fields and document
+        handleTemplateChange();
+    }
+}
+
+// Handle template selection change
+function handleTemplateChange() {
+    const selector = document.getElementById('templateSelector');
+    if (!selector) return;
+    
+    state.selectedTemplateId = selector.value;
+    
+    // Reload form fields for selected template
+    const savedData = state.currentProject?.form_data || {};
+    loadDynamicFields(savedData);
+    
+    // Reload document preview for selected template
+    renderDocuments();
+}
+
+// Handle threshold type change
+function handleThresholdChange() {
+    // Update template selector based on new threshold
+    populateTemplateSelector();
+    
+    // Reload form fields
+    const savedData = state.currentProject?.form_data || {};
+    loadDynamicFields(savedData);
+}
+
+// Dynamic Form Fields
+function loadDynamicFields(savedData = {}) {
+    const container = document.getElementById('dynamicFormFields');
+    
+    // If no template is selected, show empty state
+    if (!state.selectedTemplateId) {
+        container.innerHTML = '<div class="empty-state"><p>Bitte wählen Sie eine Vorlage aus.</p></div>';
+        return;
+    }
+    
+    // Get the selected template
+    const selectedTemplate = state.templates.find(t => t.id === state.selectedTemplateId);
+    if (!selectedTemplate) {
+        container.innerHTML = '<div class="empty-state"><p>Vorlage nicht gefunden.</p></div>';
+        return;
+    }
+    
+    // Get fields from selected template only
     const allFields = {};
     const fieldGroups = {};
     
-    applicableTemplates.forEach(template => {
-        Object.entries(template.template_fields).forEach(([key, field]) => {
-            if (!allFields[key]) {
-                allFields[key] = field;
-                const section = field.section || 'general';
-                if (!fieldGroups[section]) {
-                    fieldGroups[section] = {};
-                }
-                fieldGroups[section][key] = field;
-            }
-        });
+    Object.entries(selectedTemplate.template_fields).forEach(([key, field]) => {
+        allFields[key] = field;
+        const section = field.section || 'general';
+        if (!fieldGroups[section]) {
+            fieldGroups[section] = {};
+        }
+        fieldGroups[section][key] = field;
     });
     
     // Render fields by section
@@ -659,46 +774,107 @@ async function loadProjectDocuments(projectId) {
 function renderDocuments() {
     const container = document.getElementById('documentsList');
     
-    if (state.documents.length === 0) {
-        container.innerHTML = '<div class="empty-state"><p>Noch keine Dokumente generiert</p></div>';
+    // If no template is selected, show empty state
+    if (!state.selectedTemplateId) {
+        container.innerHTML = '<div class="empty-state"><p>Bitte wählen Sie eine Vorlage aus.</p></div>';
         return;
     }
     
-    container.innerHTML = state.documents.map(doc => {
-        const template = doc.expand?.template;
-        const content = doc.filled_content;
-        const formData = content.filled_data || {};
-        
-        return `
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-header">
-                    <h3 class="card-title">${template?.name || 'Dokument'}</h3>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn btn-small btn-secondary" onclick="downloadDocumentAsDocx('${doc.id}')">
-                            📥 DOCX
+    // Find the document for the selected template
+    const selectedDoc = state.documents.find(doc => 
+        doc.expand?.template?.id === state.selectedTemplateId
+    );
+    
+    if (!selectedDoc) {
+        // If no document exists for this template, show preview
+        renderTemplatePreview();
+        return;
+    }
+    
+    // Render only the selected document
+    const template = selectedDoc.expand?.template;
+    const content = selectedDoc.filled_content;
+    const formData = content.filled_data || {};
+    
+    container.innerHTML = `
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h3 class="card-title">${template?.name || 'Dokument'}</h3>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-small btn-secondary" onclick="downloadDocumentAsDocx('${selectedDoc.id}')">
+                        📥 DOCX
+                    </button>
+                    <button class="btn btn-small btn-secondary" onclick="copyDocument('${selectedDoc.id}')">
+                        📋 Kopieren
+                    </button>
+                    ${state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin') ? `
+                        <button class="btn btn-small btn-primary" onclick="openCommentModal('${selectedDoc.id}')">
+                            💬 Kommentar
                         </button>
-                        <button class="btn btn-small btn-secondary" onclick="copyDocument('${doc.id}')">
-                            📋 Kopieren
-                        </button>
-                        ${state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin') ? `
-                            <button class="btn btn-small btn-primary" onclick="openCommentModal('${doc.id}')">
-                                💬 Kommentar
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-                <div class="document-preview" id="doc-${doc.id}">
-                    ${renderDocumentContent(template, content, formData)}
-                </div>
-                <div id="comments-${doc.id}" style="margin-top: 1rem;">
-                    <!-- Comments will be loaded here -->
+                    ` : ''}
                 </div>
             </div>
-        `;
-    }).join('');
+            <div class="document-preview" id="doc-${selectedDoc.id}">
+                ${renderDocumentContent(template, content, formData)}
+            </div>
+            <div id="comments-${selectedDoc.id}" style="margin-top: 1rem;">
+                <!-- Comments will be loaded here -->
+            </div>
+        </div>
+    `;
     
-    // Load comments for each document
-    state.documents.forEach(doc => loadDocumentComments(doc.id));
+    // Load comments for this document
+    loadDocumentComments(selectedDoc.id);
+}
+
+// Collect form data from all input fields
+function collectFormData() {
+    const formData = {};
+    
+    // Get all dynamic form fields
+    const dynamicFields = document.querySelectorAll('#dynamicFormFields input, #dynamicFormFields select, #dynamicFormFields textarea');
+    dynamicFields.forEach(field => {
+        if (field.name) {
+            formData[field.name] = field.value;
+        }
+    });
+    
+    // Get basic form fields
+    const basicFields = document.querySelectorAll('#projectForm input, #projectForm select, #projectForm textarea');
+    basicFields.forEach(field => {
+        if (field.name && !formData[field.name]) {
+            formData[field.name] = field.value;
+        }
+    });
+    
+    return formData;
+}
+
+// Render template preview when no document exists
+function renderTemplatePreview() {
+    const container = document.getElementById('documentsList');
+    const selectedTemplate = state.templates.find(t => t.id === state.selectedTemplateId);
+    
+    if (!selectedTemplate) {
+        container.innerHTML = '<div class="empty-state"><p>Vorlage nicht gefunden.</p></div>';
+        return;
+    }
+    
+    const formData = collectFormData();
+    
+    container.innerHTML = `
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h3 class="card-title">${selectedTemplate.name} (Vorschau)</h3>
+                <div style="display: flex; gap: 0.5rem;">
+                    <span class="badge">Vorschau</span>
+                </div>
+            </div>
+            <div class="document-preview">
+                ${renderDocumentContent(selectedTemplate, selectedTemplate.template_content, formData)}
+            </div>
+        </div>
+    `;
 }
 
 function renderDocumentContent(template, content, formData) {
@@ -1227,106 +1403,8 @@ function getCurrentFormData() {
 }
 
 function updateLivePreview() {
-    const container = document.getElementById('documentsList');
-    const thresholdType = document.getElementById('thresholdType').value;
-    
-    if (!thresholdType) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">📄</div>
-                <h3 class="empty-state-title">Schwellenwert wählen</h3>
-                <p class="empty-state-text">Bitte wählen Sie zuerst einen Schwellenwert aus, um die passenden Templates zu sehen.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Get applicable templates
-    const applicableTemplates = state.templates.filter(template => {
-        if (thresholdType === 'oberschwellig') {
-            return ['VgV', 'VgV_UVgO', 'SektVO'].includes(template.category);
-        } else {
-            return ['UVgO', 'VgV_UVgO'].includes(template.category);
-        }
-    });
-    
-    if (applicableTemplates.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">📄</div>
-                <h3 class="empty-state-title">Keine Templates verfügbar</h3>
-                <p class="empty-state-text">Für den gewählten Schwellenwert sind keine Templates verfügbar.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    const formData = getCurrentFormData();
-    
-    // Render preview for each template
-    container.innerHTML = applicableTemplates.map(template => `
-        <div class="card" style="margin-bottom: 2rem;">
-            <div class="card-header">
-                <h3 class="card-title">${template.name}</h3>
-                <span class="badge badge-processing">Vorschau</span>
-            </div>
-            <div class="document-preview" style="max-height: 400px; overflow-y: auto; padding: 1rem; background: white; border: 1px solid var(--gray-200); border-radius: 8px;">
-                ${renderTemplatePreview(template, formData)}
-            </div>
-        </div>
-    `).join('');
-}
-
-function renderTemplatePreview(template, formData) {
-    // Check if template uses new section structure or old text format
-    if (typeof template.template_content === 'string') {
-        // Old format - convert placeholders
-        let content = template.template_content;
-        
-        // Replace all placeholders with actual values
-        Object.entries(formData).forEach(([key, value]) => {
-            const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-            
-            // Format values based on type
-            let displayValue = value;
-            if (template.template_fields[key]) {
-                const field = template.template_fields[key];
-                
-                if (field.type === 'checkbox') {
-                    displayValue = value ? '✓ Ja' : '✗ Nein';
-                } else if (field.type === 'date' && value) {
-                    displayValue = new Date(value).toLocaleDateString('de-DE');
-                } else if (field.type === 'currency' && value) {
-                    displayValue = new Intl.NumberFormat('de-DE', { 
-                        style: 'currency', 
-                        currency: 'EUR' 
-                    }).format(value);
-                } else if (!value) {
-                    displayValue = `<span style="background: yellow;">[${field.label || key}]</span>`;
-                }
-            }
-            
-            content = content.replace(regex, displayValue);
-        });
-        
-        // Highlight any remaining placeholders
-        content = content.replace(/{{([^}]+)}}/g, '<span style="background: yellow;">[Feld: $1]</span>');
-        
-        // Convert markdown-like syntax to HTML
-        content = content
-            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n/g, '<br>');
-        
-        return content;
-    } else {
-        // New format - render sections
-        const filledData = { ...formData };
-        const content = { ...template.template_content, filled_data: filledData };
-        return renderDocumentContent(template, content, filledData);
-    }
+    // Use the new renderDocuments function which handles template selection
+    renderDocuments();
 }
 
 // Utility function for debouncing

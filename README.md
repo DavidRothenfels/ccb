@@ -5,12 +5,21 @@ Digitale Unterstützung für die Vorbereitung von Vergabeverfahren in der öffen
 ## Installation & Start
 
 ```bash
-# PocketBase starten
-./start_pocketbase.sh
+# PocketBase starten (beendet automatisch alte Prozesse)
+./start.sh
 
-# Oder manuell:
+# PocketBase stoppen
+./stop.sh
+
+# Manueller Start (ohne Prozessbereinigung):
 ./pocketbase serve --http=0.0.0.0:8091 --dir=./pb_data
 ```
+
+### Zugriff unter Windows (WSL)
+Das System bindet an alle Netzwerkschnittstellen (0.0.0.0), sodass es sowohl aus WSL als auch aus Windows erreichbar ist:
+- Aus Windows/Browser: http://localhost:8091/
+- Aus WSL Terminal: http://localhost:8091/
+- Im Netzwerk: http://[WSL-IP]:8091/
 
 ## Zugang
 

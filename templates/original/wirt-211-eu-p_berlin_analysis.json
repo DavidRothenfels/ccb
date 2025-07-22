@@ -1,0 +1,273 @@
+{
+  "template": "wirt-211-eu-p.docx",
+  "analyzedAt": "2025-07-22T04:20:44.280Z",
+  "templateType": "Sonstige",
+  "sections": [],
+  "fieldCount": 33,
+  "fields": [
+    {
+      "key": "datum",
+      "label": "Datum",
+      "type": "date",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "tel",
+      "label": "Tel.",
+      "type": "phone",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "fax",
+      "label": "Fax",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "e_mail",
+      "label": "E-Mail",
+      "type": "email",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "vergabeart",
+      "label": "Vergabeart",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "ablauf_der_angebotsfrist",
+      "label": "Ablauf der Angebotsfrist",
+      "type": "date",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "uhrzeit",
+      "label": "Uhrzeit",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "bindefrist_endet_am",
+      "label": "Bindefrist endet am",
+      "type": "date",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "anlagen",
+      "label": "Anlagen",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "a_folgende_unterlagen_verbleiben_beim_bieter_und_sind_im_vergabeverfahren_zu_beachten",
+      "label": "A) Folgende Unterlagen verbleiben beim Bieter und sind im Vergabeverfahren zu beachten",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "b_folgende_unterlagen_verbleiben_beim_bieter_und_werden_vertragsbestandteil",
+      "label": "B) Folgende Unterlagen verbleiben beim Bieter und werden Vertragsbestandteil",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "wirt_2145_bvb_ueber_umweltschutzanforderungen_ggf_mit_anlage_n_zu_nr_1_und_2",
+      "label": "Wirt-2145\tBVB  über Umweltschutzanforderungen ggf. mit Anlage(n) zu Nr. 1 und 2",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "c_folgende_unterlagen_sind_soweit_erforderlich_ausgefuellt_dem_angebot_beizufuegen",
+      "label": "C) Folgende Unterlagen sind - soweit erforderlich - ausgefüllt dem Angebot beizufügen",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "d_folgende_unterlagen_sind_auf_gesondertes_verlangen_der_vergabestelle_einzureichen",
+      "label": "D) Folgende Unterlagen sind auf gesondertes Verlangen der Vergabestelle einzureichen",
+      "type": "phone",
+      "section": "Allgemein",
+      "required": true,
+      "description": ""
+    },
+    {
+      "key": "die_kommunikation_erfolgt_in_textform_unter_der_anschrift_folgender_stelle",
+      "label": "Die Kommunikation erfolgt in Textform unter der Anschrift folgender Stelle",
+      "type": "phone",
+      "section": "Allgemein",
+      "required": true,
+      "description": ""
+    },
+    {
+      "key": "modelle_muster_und_proben_sind_auf_dem_postweg_einzureichen_unter_der_anschrift_folgender_stelle",
+      "label": "Modelle, Muster und Proben sind auf dem Postweg einzureichen unter der Anschrift folgender Stelle",
+      "type": "phone",
+      "section": "Allgemein",
+      "required": true,
+      "description": ""
+    },
+    {
+      "key": "4_zusatz_fuer_bietergemeinschaften",
+      "label": "4\tZusatz für Bietergemeinschaften",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "bei_zugelassener_angebotsabgabe_fuer_mehr_als_ein_los",
+      "label": "Bei zugelassener Angebotsabgabe für mehr als ein Los",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "beschraenkung_der_zahl_der_lose_fuer_die_ein_bieter_den_zuschlag_erhalten_kann",
+      "label": "Beschränkung der Zahl der Lose, für die ein Bieter den Zuschlag erhalten kann",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "nur_fuer_nachfolgend_genannte_bereiche",
+      "label": "nur für nachfolgend genannte Bereiche",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "mit_ausnahme_nachfolgend_genannter_bereiche",
+      "label": "mit Ausnahme nachfolgend genannter Bereiche",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "unter_folgenden_weiteren_bedingungen",
+      "label": "unter folgenden weiteren Bedingungen",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "kriterien_fuer_die_wertung_der_haupt_und_ggf_nebenangebote",
+      "label": "Kriterien für die Wertung der Haupt- und ggf. Nebenangebote",
+      "type": "currency",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "weitere_zuschlagskriterien",
+      "label": "Weitere Zuschlagskriterien",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "abweichende_zuschlagskriterien_bei_losweiser_vergabe_fuer_folgende_lose",
+      "label": "Abweichende Zuschlagskriterien bei losweiser Vergabe für folgende Lose",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "angebote_koennen_abgegeben_werden",
+      "label": "Angebote können abgegeben werden",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "massnahmennummer",
+      "label": "Maßnahmennummer",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "massnahme",
+      "label": "Maßnahme",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "vergabenummer",
+      "label": "Vergabenummer",
+      "type": "text",
+      "section": "Allgemein",
+      "required": true,
+      "description": "Eindeutige Nummer des Vergabeverfahrens"
+    },
+    {
+      "key": "leistung",
+      "label": "Leistung",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "verhandlungen_werden_in_klicken_sie_hier_um_text_einzugeben_phasen_gefuehrt",
+      "label": "Verhandlungen werden in Klicken Sie hier, um Text einzugeben. Phasen geführt",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "bei_einer_in_teillose_aufgeteilten_leistung_kann_der_auftraggeber_die_zahl_der_lose_pro_bieter_limitieren_die_losweise_vergabe_erfolgt_gemaess_nachfolgenden_bedingungen",
+      "label": "Bei einer in Teillose aufgeteilten Leistung kann der Auftraggeber die Zahl der Lose pro Bieter limitieren; die losweise Vergabe erfolgt gemäß nachfolgenden Bedingungen",
+      "type": "text",
+      "section": "Formular",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "bei_schriftlicher_angebotsabgabe_ist_das_beigefuegte_angebotsschreiben_zu_unterzeichnen_und_zusammen_mit_den_anlagen_in_verschlossenem_umschlag_bis_zum_ablauf_der_angebotsfrist_an_die_anschrift_folgender_stelle_zu_senden_oder_dort_abzugeben",
+      "label": "Bei schriftlicher Angebotsabgabe ist das beigefügte Angebotsschreiben zu unterzeichnen und zusammen mit den Anlagen in verschlossenem Umschlag bis zum Ablauf der Angebotsfrist an die Anschrift folgender Stelle zu senden oder dort abzugeben",
+      "type": "date",
+      "section": "Formular",
+      "required": true,
+      "description": ""
+    }
+  ]
+}

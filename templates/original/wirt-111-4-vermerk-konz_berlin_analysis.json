@@ -1,0 +1,75 @@
+{
+  "template": "wirt-111-4-vermerk-konz.docx",
+  "analyzedAt": "2025-07-22T04:20:43.764Z",
+  "templateType": "KonzVgV",
+  "sections": [
+    ""
+  ],
+  "fieldCount": 8,
+  "fields": [
+    {
+      "key": "begruendung",
+      "label": "Begründung",
+      "type": "textarea",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "laengere_frist_27_abs_1_2_konzvgv",
+      "label": "längere Frist (§ 27 Abs. 1, 2 KonzVgV)",
+      "type": "date",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "laufzeit_3_konzvgv",
+      "label": "Laufzeit (§ 3 KonzVgV)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "begruendung_bei_laengerem_zeitraum_als_fuenf_jahre",
+      "label": "Begründung bei längerem Zeitraum als fünf Jahre",
+      "type": "textarea",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "mehrstufiges_verfahren",
+      "label": "mehrstufiges Verfahren",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig_28_konzvgv",
+      "label": "Teilnahmeanträge sind in folgender Form zulässig (§ 28 KonzVgV)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "angebotsabgabe_ist_in_folgender_form_zulaessig_28_konzvgv",
+      "label": "Angebotsabgabe ist in folgender Form zulässig (§ 28 KonzVgV)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "andere_art_der_zurverfuegungstellung",
+      "label": "andere Art der Zurverfügungstellung",
+      "type": "phone",
+      "section": "",
+      "required": false,
+      "description": ""
+    }
+  ]
+}

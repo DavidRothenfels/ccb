@@ -1,0 +1,67 @@
+{
+  "template": "wirt-111-vorvermerk.docx",
+  "analyzedAt": "2025-07-22T04:20:44.133Z",
+  "templateType": "Vorvermerk",
+  "sections": [
+    ""
+  ],
+  "fieldCount": 7,
+  "fields": [
+    {
+      "key": "datum",
+      "label": "Datum",
+      "type": "date",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "vergabestelle_sofern_nicht_mit_auftraggeber_identisch",
+      "label": "Vergabestelle (sofern nicht mit Auftraggeber identisch)",
+      "type": "phone",
+      "section": "",
+      "required": true,
+      "description": ""
+    },
+    {
+      "key": "auskunft_gebende_stelle_sofern_nicht_mit_vergabestelle_identisch",
+      "label": "Auskunft gebende Stelle (sofern nicht mit Vergabestelle identisch)",
+      "type": "phone",
+      "section": "",
+      "required": true,
+      "description": ""
+    },
+    {
+      "key": "cpv_nr_n_und_kurzbezeichnung",
+      "label": "CPV-Nr(n). und Kurzbezeichnung",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "grundlage_der_schaetzung",
+      "label": "Grundlage der Schätzung",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "haushaltsmittel",
+      "label": "Haushaltsmittel",
+      "type": "phone",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "ergebnis_der_pruefung",
+      "label": "Ergebnis der Prüfung",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    }
+  ]
+}

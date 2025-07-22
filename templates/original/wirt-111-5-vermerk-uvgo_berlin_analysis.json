@@ -1,0 +1,292 @@
+{
+  "template": "wirt-111-5-vermerk-uvgo.docx",
+  "analyzedAt": "2025-07-22T04:20:44.052Z",
+  "templateType": "UVgO",
+  "sections": [
+    "",
+    "EEE"
+  ],
+  "fieldCount": 35,
+  "fields": [
+    {
+      "key": "begruendung",
+      "label": "Begründung",
+      "type": "textarea",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "benennung_nur_eines_bieters_8_abs_4_nr_10_uvgo",
+      "label": "Benennung nur eines Bieters (§ 8 Abs. 4 Nr. 10 UVgO)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "hoechstzahl_an_bewerbern",
+      "label": "Höchstzahl an Bewerbern",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "mindestzahl_an_bewerben",
+      "label": "Mindestzahl an Bewerben",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "anzahl_der_auftragnehmer",
+      "label": "Anzahl der Auftragnehmer",
+      "type": "number",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "hoehe",
+      "label": "Höhe",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "dauer",
+      "label": "Dauer",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "fuer_ein_los_oder_mehrere_lose",
+      "label": "für ein Los oder mehrere Lose",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "fuer_eine_losgruppe_oder_mehrere_losgruppen",
+      "label": "für eine Losgruppe oder mehrere Losgruppen",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "fuer_eine_kombination_von_losen_oder_losgruppen",
+      "label": "für eine Kombination von Losen oder Losgruppen",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "hoechstzahl_der_lose_die_an_einen_bieter_vergeben_werden",
+      "label": "Höchstzahl der Lose, die an einen Bieter vergeben werden",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "begruendung_fuer_nachweise_ausser_eigenerklaerungen",
+      "label": "Begründung für Nachweise, außer Eigenerklärungen",
+      "type": "textarea",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "teilleistungen",
+      "label": "Teilleistungen",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "andere_medien",
+      "label": "andere Medien",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "sind_hinterlegt",
+      "label": "sind hinterlegt",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "werden_auf_einem_anderen_weg_uebermittelt",
+      "label": "werden auf einem anderen Weg übermittelt",
+      "type": "phone",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "preis",
+      "label": "Preis",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "kosten",
+      "label": "Kosten",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "qualitaet",
+      "label": "Qualität",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig_38_uvgo",
+      "label": "Teilnahmeanträge sind in folgender Form zulässig (§ 38 UVgO)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "begruendung_bei_nicht_elektronischer_kommunikation_7_abs_1_und_4_uvgo_38_abs_4_und_6_uvgo",
+      "label": "Begründung bei nicht-elektronischer Kommunikation (§ 7 Abs. 1 und 4 UVgO, § 38 Abs. 4 und 6 UVgO)",
+      "type": "textarea",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "angebote_sind_in_folgender_form_zulaessig_38_uvgo",
+      "label": "Angebote sind in folgender Form zulässig (§ 38 UVgO)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "andere_art_der_zurverfuegungstellung",
+      "label": "andere Art der Zurverfügungstellung",
+      "type": "phone",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "termin_uhrzeit_40_abs_1_uvgo",
+      "label": "Termin / Uhrzeit (§ 40 Abs. 1 UVgO)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "stelle_raum",
+      "label": "Stelle / Raum",
+      "type": "phone",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "ausfuehrungsfrist_28_abs_2_nr_8_uvgo",
+      "label": "Ausführungsfrist (§ 28 Abs. 2 Nr. 8 UVgO)",
+      "type": "date",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "bindefrist_28_abs_2_nr_10_uvgo",
+      "label": "Bindefrist (§ 28 Abs. 2 Nr. 10 UVgO)",
+      "type": "date",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "freitext",
+      "label": "Freitext",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "lose",
+      "label": "Lose",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "angebotsfrist",
+      "label": "Angebotsfrist",
+      "type": "date",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig",
+      "label": "Teilnahmeanträge sind in folgender Form zulässig",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "angebotsabgabe_ist_in_folgender_form_zulaessig",
+      "label": "Angebotsabgabe ist in folgender Form zulässig",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "termin_uhrzeit",
+      "label": "Termin / Uhrzeit",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "ausfuehrungs_lieferfrist",
+      "label": "Ausführungs-/ Lieferfrist",
+      "type": "date",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "sonstiges",
+      "label": "Sonstiges",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    }
+  ]
+}

@@ -1,0 +1,1813 @@
+{
+  "analyzedAt": "2025-07-22T04:20:44.283Z",
+  "templateCount": 7,
+  "templateTypes": [
+    "VgV",
+    "Vermerk",
+    "VSVgV",
+    "KonzVgV",
+    "UVgO",
+    "Vorvermerk",
+    "Sonstige"
+  ],
+  "templates": [
+    {
+      "template": "wirt-111-1-vermerk-vgv.docx",
+      "analyzedAt": "2025-07-22T04:20:43.265Z",
+      "templateType": "VgV",
+      "sections": [
+        ""
+      ],
+      "fieldCount": 21,
+      "fields": [
+        {
+          "key": "vorinformation_38_vgv_beabsichtigter_tag_der_absendung",
+          "label": "Vorinformation (§ 38 VgV), (beabsichtigter) Tag der Absendung",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "begruendung",
+          "label": "Begründung",
+          "type": "textarea",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "benennung_nur_eines_bieters_14_abs_6_vgv",
+          "label": "Benennung nur eines Bieters (§ 14 Abs. 6 VgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "hoechstzahl_an_bewerbern",
+          "label": "Höchstzahl an Bewerbern",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "mindestzahl_an_bewerbern",
+          "label": "Mindestzahl an Bewerbern",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "laengere_frist_20_vgv",
+          "label": "längere Frist (§ 20 VgV)",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "laufzeit_21_abs_6_vgv",
+          "label": "Laufzeit (§ 21 Abs. 6 VgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "begruendung_bei_laengerer_laufzeit_als_vier_jahre",
+          "label": "Begründung bei längerer Laufzeit als vier Jahre",
+          "type": "textarea",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_ein_los_oder_mehrere_lose",
+          "label": "für ein Los oder mehrere Lose",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_eine_losgruppe_oder_mehrere_losgruppen",
+          "label": "für eine Losgruppe oder mehrere Losgruppen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_eine_kombination_von_losen_oder_losgruppen",
+          "label": "für eine Kombination von Losen oder Losgruppen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "begruendung_fuer_nachweise_ausser_eigenerklaerungen",
+          "label": "Begründung für Nachweise, außer Eigenerklärungen",
+          "type": "textarea",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "teilleistungen",
+          "label": "Teilleistungen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "qualitaet",
+          "label": "Qualität",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "10_zuschlags_und_bindefrist_145_bgb",
+          "label": "10 - Zuschlags- und Bindefrist (§ 145 BGB)",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "11_ausfuehrungs_lieferfrist",
+          "label": "11 - Ausführungs-/ Lieferfrist",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "interessenbekundungen_sind_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+          "label": "Interessenbekundungen sind in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+          "label": "Teilnahmeanträge sind in folgender Form zulässig (§ 53 VgV § 19 VSVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "angebotsabgabe_ist_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+          "label": "Angebotsabgabe ist in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "andere_art_der_zurverfuegungstellung",
+          "label": "andere Art der Zurverfügungstellung",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "stelle_raum",
+          "label": "Stelle / Raum",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "template": "wirt-111-2-vermerk-dl.docx",
+      "analyzedAt": "2025-07-22T04:20:43.493Z",
+      "templateType": "Vermerk",
+      "sections": [
+        ""
+      ],
+      "fieldCount": 22,
+      "fields": [
+        {
+          "key": "vorinformation_38_vgv_beabsichtigter_tag_der_absendung",
+          "label": "Vorinformation (§ 38 VgV), (beabsichtigter) Tag der Absendung",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "begruendung",
+          "label": "Begründung",
+          "type": "textarea",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "benennung_nur_eines_bieters_14_abs_6_vgv",
+          "label": "Benennung nur eines Bieters (§ 14 Abs. 6 VgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "hoechstzahl_an_bewerbern",
+          "label": "Höchstzahl an Bewerbern",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "mindestzahl_an_bewerbern",
+          "label": "Mindestzahl an Bewerbern",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "laengere_frist_20_vgv",
+          "label": "längere Frist (§ 20 VgV)",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "angemessene_frist_20_vgv",
+          "label": "angemessene Frist (§ 20 VgV)",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "laufzeit_21_abs_6_vgv",
+          "label": "Laufzeit (§ 21 Abs. 6 VgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "begruendung_bei_laengerer_laufzeit_als_vier_jahre",
+          "label": "Begründung bei längerer Laufzeit als vier Jahre",
+          "type": "textarea",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "kurzbeschreibung_der_lose",
+          "label": "Kurzbeschreibung der Lose",
+          "type": "textarea",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_ein_los_oder_mehrere_lose",
+          "label": "für ein Los oder mehrere Lose",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_eine_losgruppe_oder_mehrere_losgruppen",
+          "label": "für eine Losgruppe oder mehrere Losgruppen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_eine_kombination_von_losen_oder_losgruppen",
+          "label": "für eine Kombination von Losen oder Losgruppen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "mindestanforderungen",
+          "label": "Mindestanforderungen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "qualitaet",
+          "label": "Qualität",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "10_zuschlags_und_bindefrist_145_bgb",
+          "label": "10 - Zuschlags- und Bindefrist (§ 145 BGB)",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "11_ausfuehrungs_lieferfrist",
+          "label": "11 - Ausführungs-/ Lieferfrist",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "interessenbekundungen_sind_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+          "label": "Interessenbekundungen sind in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+          "label": "Teilnahmeanträge sind in folgender Form zulässig (§ 53 VgV § 19 VSVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "angebotsabgabe_ist_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+          "label": "Angebotsabgabe ist in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "andere_art_der_zurverfuegungstellung",
+          "label": "andere Art der Zurverfügungstellung",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "stelle_raum",
+          "label": "Stelle / Raum",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "template": "wirt-111-3-vermerk-verteidigung.docx",
+      "analyzedAt": "2025-07-22T04:20:43.678Z",
+      "templateType": "VSVgV",
+      "sections": [
+        ""
+      ],
+      "fieldCount": 20,
+      "fields": [
+        {
+          "key": "vorinformation_17_vsvgv_beabsichtigter_tag_der_absendung",
+          "label": "Vorinformation (§ 17 VSVgV), (beabsichtigter) Tag der Absendung",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "begruendung",
+          "label": "Begründung",
+          "type": "textarea",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "hoechstzahl_an_bewerbern",
+          "label": "Höchstzahl an Bewerbern",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "mindestzahl_an_bewerbern",
+          "label": "Mindestzahl an Bewerbern",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "laengere_frist_20_vgv",
+          "label": "längere Frist (§ 20 VgV)",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "laufzeit_21_abs_6_vgv",
+          "label": "Laufzeit (§ 21 Abs. 6 VgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "begruendung_bei_laengerer_laufzeit_als_vier_jahre",
+          "label": "Begründung bei längerer Laufzeit als vier Jahre",
+          "type": "textarea",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "kurzbeschreibung_der_lose",
+          "label": "Kurzbeschreibung der Lose",
+          "type": "textarea",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_ein_los_oder_mehrere_lose",
+          "label": "für ein Los oder mehrere Lose",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_eine_losgruppe_oder_mehrere_losgruppen",
+          "label": "für eine Losgruppe oder mehrere Losgruppen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_eine_kombination_von_losen_oder_losgruppen",
+          "label": "für eine Kombination von Losen oder Losgruppen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "mindestanforderungen",
+          "label": "Mindestanforderungen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "qualitaet",
+          "label": "Qualität",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "10_zuschlags_und_bindefrist_145_bgb",
+          "label": "10 - Zuschlags- und Bindefrist (§ 145 BGB)",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "11_ausfuehrungs_lieferfrist",
+          "label": "11 - Ausführungs-/ Lieferfrist",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "interessenbekundungen_sind_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+          "label": "Interessenbekundungen sind in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+          "label": "Teilnahmeanträge sind in folgender Form zulässig (§ 53 VgV § 19 VSVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "angebotsabgabe_ist_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+          "label": "Angebotsabgabe ist in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "andere_art_der_zurverfuegungstellung",
+          "label": "andere Art der Zurverfügungstellung",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "stelle_raum",
+          "label": "Stelle / Raum",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "template": "wirt-111-4-vermerk-konz.docx",
+      "analyzedAt": "2025-07-22T04:20:43.764Z",
+      "templateType": "KonzVgV",
+      "sections": [
+        ""
+      ],
+      "fieldCount": 8,
+      "fields": [
+        {
+          "key": "begruendung",
+          "label": "Begründung",
+          "type": "textarea",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "laengere_frist_27_abs_1_2_konzvgv",
+          "label": "längere Frist (§ 27 Abs. 1, 2 KonzVgV)",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "laufzeit_3_konzvgv",
+          "label": "Laufzeit (§ 3 KonzVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "begruendung_bei_laengerem_zeitraum_als_fuenf_jahre",
+          "label": "Begründung bei längerem Zeitraum als fünf Jahre",
+          "type": "textarea",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "mehrstufiges_verfahren",
+          "label": "mehrstufiges Verfahren",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig_28_konzvgv",
+          "label": "Teilnahmeanträge sind in folgender Form zulässig (§ 28 KonzVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "angebotsabgabe_ist_in_folgender_form_zulaessig_28_konzvgv",
+          "label": "Angebotsabgabe ist in folgender Form zulässig (§ 28 KonzVgV)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "andere_art_der_zurverfuegungstellung",
+          "label": "andere Art der Zurverfügungstellung",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "template": "wirt-111-5-vermerk-uvgo.docx",
+      "analyzedAt": "2025-07-22T04:20:44.052Z",
+      "templateType": "UVgO",
+      "sections": [
+        "",
+        "EEE"
+      ],
+      "fieldCount": 35,
+      "fields": [
+        {
+          "key": "begruendung",
+          "label": "Begründung",
+          "type": "textarea",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "benennung_nur_eines_bieters_8_abs_4_nr_10_uvgo",
+          "label": "Benennung nur eines Bieters (§ 8 Abs. 4 Nr. 10 UVgO)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "hoechstzahl_an_bewerbern",
+          "label": "Höchstzahl an Bewerbern",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "mindestzahl_an_bewerben",
+          "label": "Mindestzahl an Bewerben",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "anzahl_der_auftragnehmer",
+          "label": "Anzahl der Auftragnehmer",
+          "type": "number",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "hoehe",
+          "label": "Höhe",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "dauer",
+          "label": "Dauer",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_ein_los_oder_mehrere_lose",
+          "label": "für ein Los oder mehrere Lose",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_eine_losgruppe_oder_mehrere_losgruppen",
+          "label": "für eine Losgruppe oder mehrere Losgruppen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fuer_eine_kombination_von_losen_oder_losgruppen",
+          "label": "für eine Kombination von Losen oder Losgruppen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "hoechstzahl_der_lose_die_an_einen_bieter_vergeben_werden",
+          "label": "Höchstzahl der Lose, die an einen Bieter vergeben werden",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "begruendung_fuer_nachweise_ausser_eigenerklaerungen",
+          "label": "Begründung für Nachweise, außer Eigenerklärungen",
+          "type": "textarea",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "teilleistungen",
+          "label": "Teilleistungen",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "andere_medien",
+          "label": "andere Medien",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "sind_hinterlegt",
+          "label": "sind hinterlegt",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "werden_auf_einem_anderen_weg_uebermittelt",
+          "label": "werden auf einem anderen Weg übermittelt",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "preis",
+          "label": "Preis",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "kosten",
+          "label": "Kosten",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "qualitaet",
+          "label": "Qualität",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig_38_uvgo",
+          "label": "Teilnahmeanträge sind in folgender Form zulässig (§ 38 UVgO)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "begruendung_bei_nicht_elektronischer_kommunikation_7_abs_1_und_4_uvgo_38_abs_4_und_6_uvgo",
+          "label": "Begründung bei nicht-elektronischer Kommunikation (§ 7 Abs. 1 und 4 UVgO, § 38 Abs. 4 und 6 UVgO)",
+          "type": "textarea",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "angebote_sind_in_folgender_form_zulaessig_38_uvgo",
+          "label": "Angebote sind in folgender Form zulässig (§ 38 UVgO)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "andere_art_der_zurverfuegungstellung",
+          "label": "andere Art der Zurverfügungstellung",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "termin_uhrzeit_40_abs_1_uvgo",
+          "label": "Termin / Uhrzeit (§ 40 Abs. 1 UVgO)",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "stelle_raum",
+          "label": "Stelle / Raum",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "ausfuehrungsfrist_28_abs_2_nr_8_uvgo",
+          "label": "Ausführungsfrist (§ 28 Abs. 2 Nr. 8 UVgO)",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "bindefrist_28_abs_2_nr_10_uvgo",
+          "label": "Bindefrist (§ 28 Abs. 2 Nr. 10 UVgO)",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "freitext",
+          "label": "Freitext",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "lose",
+          "label": "Lose",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "angebotsfrist",
+          "label": "Angebotsfrist",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig",
+          "label": "Teilnahmeanträge sind in folgender Form zulässig",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "angebotsabgabe_ist_in_folgender_form_zulaessig",
+          "label": "Angebotsabgabe ist in folgender Form zulässig",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "termin_uhrzeit",
+          "label": "Termin / Uhrzeit",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "ausfuehrungs_lieferfrist",
+          "label": "Ausführungs-/ Lieferfrist",
+          "type": "date",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "sonstiges",
+          "label": "Sonstiges",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "template": "wirt-111-vorvermerk.docx",
+      "analyzedAt": "2025-07-22T04:20:44.133Z",
+      "templateType": "Vorvermerk",
+      "sections": [
+        ""
+      ],
+      "fieldCount": 7,
+      "fields": [
+        {
+          "key": "datum",
+          "label": "Datum",
+          "type": "date",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "vergabestelle_sofern_nicht_mit_auftraggeber_identisch",
+          "label": "Vergabestelle (sofern nicht mit Auftraggeber identisch)",
+          "type": "phone",
+          "section": "",
+          "required": true,
+          "description": ""
+        },
+        {
+          "key": "auskunft_gebende_stelle_sofern_nicht_mit_vergabestelle_identisch",
+          "label": "Auskunft gebende Stelle (sofern nicht mit Vergabestelle identisch)",
+          "type": "phone",
+          "section": "",
+          "required": true,
+          "description": ""
+        },
+        {
+          "key": "cpv_nr_n_und_kurzbezeichnung",
+          "label": "CPV-Nr(n). und Kurzbezeichnung",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "grundlage_der_schaetzung",
+          "label": "Grundlage der Schätzung",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "haushaltsmittel",
+          "label": "Haushaltsmittel",
+          "type": "phone",
+          "section": "",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "ergebnis_der_pruefung",
+          "label": "Ergebnis der Prüfung",
+          "type": "text",
+          "section": "",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "template": "wirt-211-eu-p.docx",
+      "analyzedAt": "2025-07-22T04:20:44.280Z",
+      "templateType": "Sonstige",
+      "sections": [],
+      "fieldCount": 33,
+      "fields": [
+        {
+          "key": "datum",
+          "label": "Datum",
+          "type": "date",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "tel",
+          "label": "Tel.",
+          "type": "phone",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "fax",
+          "label": "Fax",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "e_mail",
+          "label": "E-Mail",
+          "type": "email",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "vergabeart",
+          "label": "Vergabeart",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "ablauf_der_angebotsfrist",
+          "label": "Ablauf der Angebotsfrist",
+          "type": "date",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "uhrzeit",
+          "label": "Uhrzeit",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "bindefrist_endet_am",
+          "label": "Bindefrist endet am",
+          "type": "date",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "anlagen",
+          "label": "Anlagen",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "a_folgende_unterlagen_verbleiben_beim_bieter_und_sind_im_vergabeverfahren_zu_beachten",
+          "label": "A) Folgende Unterlagen verbleiben beim Bieter und sind im Vergabeverfahren zu beachten",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "b_folgende_unterlagen_verbleiben_beim_bieter_und_werden_vertragsbestandteil",
+          "label": "B) Folgende Unterlagen verbleiben beim Bieter und werden Vertragsbestandteil",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "wirt_2145_bvb_ueber_umweltschutzanforderungen_ggf_mit_anlage_n_zu_nr_1_und_2",
+          "label": "Wirt-2145\tBVB  über Umweltschutzanforderungen ggf. mit Anlage(n) zu Nr. 1 und 2",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "c_folgende_unterlagen_sind_soweit_erforderlich_ausgefuellt_dem_angebot_beizufuegen",
+          "label": "C) Folgende Unterlagen sind - soweit erforderlich - ausgefüllt dem Angebot beizufügen",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "d_folgende_unterlagen_sind_auf_gesondertes_verlangen_der_vergabestelle_einzureichen",
+          "label": "D) Folgende Unterlagen sind auf gesondertes Verlangen der Vergabestelle einzureichen",
+          "type": "phone",
+          "section": "Allgemein",
+          "required": true,
+          "description": ""
+        },
+        {
+          "key": "die_kommunikation_erfolgt_in_textform_unter_der_anschrift_folgender_stelle",
+          "label": "Die Kommunikation erfolgt in Textform unter der Anschrift folgender Stelle",
+          "type": "phone",
+          "section": "Allgemein",
+          "required": true,
+          "description": ""
+        },
+        {
+          "key": "modelle_muster_und_proben_sind_auf_dem_postweg_einzureichen_unter_der_anschrift_folgender_stelle",
+          "label": "Modelle, Muster und Proben sind auf dem Postweg einzureichen unter der Anschrift folgender Stelle",
+          "type": "phone",
+          "section": "Allgemein",
+          "required": true,
+          "description": ""
+        },
+        {
+          "key": "4_zusatz_fuer_bietergemeinschaften",
+          "label": "4\tZusatz für Bietergemeinschaften",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "bei_zugelassener_angebotsabgabe_fuer_mehr_als_ein_los",
+          "label": "Bei zugelassener Angebotsabgabe für mehr als ein Los",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "beschraenkung_der_zahl_der_lose_fuer_die_ein_bieter_den_zuschlag_erhalten_kann",
+          "label": "Beschränkung der Zahl der Lose, für die ein Bieter den Zuschlag erhalten kann",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "nur_fuer_nachfolgend_genannte_bereiche",
+          "label": "nur für nachfolgend genannte Bereiche",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "mit_ausnahme_nachfolgend_genannter_bereiche",
+          "label": "mit Ausnahme nachfolgend genannter Bereiche",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "unter_folgenden_weiteren_bedingungen",
+          "label": "unter folgenden weiteren Bedingungen",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "kriterien_fuer_die_wertung_der_haupt_und_ggf_nebenangebote",
+          "label": "Kriterien für die Wertung der Haupt- und ggf. Nebenangebote",
+          "type": "currency",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "weitere_zuschlagskriterien",
+          "label": "Weitere Zuschlagskriterien",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "abweichende_zuschlagskriterien_bei_losweiser_vergabe_fuer_folgende_lose",
+          "label": "Abweichende Zuschlagskriterien bei losweiser Vergabe für folgende Lose",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "angebote_koennen_abgegeben_werden",
+          "label": "Angebote können abgegeben werden",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "massnahmennummer",
+          "label": "Maßnahmennummer",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "massnahme",
+          "label": "Maßnahme",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "vergabenummer",
+          "label": "Vergabenummer",
+          "type": "text",
+          "section": "Allgemein",
+          "required": true,
+          "description": "Eindeutige Nummer des Vergabeverfahrens"
+        },
+        {
+          "key": "leistung",
+          "label": "Leistung",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "verhandlungen_werden_in_klicken_sie_hier_um_text_einzugeben_phasen_gefuehrt",
+          "label": "Verhandlungen werden in Klicken Sie hier, um Text einzugeben. Phasen geführt",
+          "type": "text",
+          "section": "Allgemein",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "bei_einer_in_teillose_aufgeteilten_leistung_kann_der_auftraggeber_die_zahl_der_lose_pro_bieter_limitieren_die_losweise_vergabe_erfolgt_gemaess_nachfolgenden_bedingungen",
+          "label": "Bei einer in Teillose aufgeteilten Leistung kann der Auftraggeber die Zahl der Lose pro Bieter limitieren; die losweise Vergabe erfolgt gemäß nachfolgenden Bedingungen",
+          "type": "text",
+          "section": "Formular",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "bei_schriftlicher_angebotsabgabe_ist_das_beigefuegte_angebotsschreiben_zu_unterzeichnen_und_zusammen_mit_den_anlagen_in_verschlossenem_umschlag_bis_zum_ablauf_der_angebotsfrist_an_die_anschrift_folgender_stelle_zu_senden_oder_dort_abzugeben",
+          "label": "Bei schriftlicher Angebotsabgabe ist das beigefügte Angebotsschreiben zu unterzeichnen und zusammen mit den Anlagen in verschlossenem Umschlag bis zum Ablauf der Angebotsfrist an die Anschrift folgender Stelle zu senden oder dort abzugeben",
+          "type": "date",
+          "section": "Formular",
+          "required": true,
+          "description": ""
+        }
+      ]
+    }
+  ],
+  "fieldSummary": {
+    "totalUniqueFields": 95,
+    "commonFields": [
+      {
+        "key": "begruendung",
+        "label": "Begründung",
+        "type": "textarea",
+        "section": "Allgemein",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx",
+          "wirt-111-4-vermerk-konz.docx",
+          "wirt-111-5-vermerk-uvgo.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV",
+          "KonzVgV",
+          "UVgO"
+        ]
+      },
+      {
+        "key": "andere_art_der_zurverfuegungstellung",
+        "label": "andere Art der Zurverfügungstellung",
+        "type": "phone",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx",
+          "wirt-111-4-vermerk-konz.docx",
+          "wirt-111-5-vermerk-uvgo.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV",
+          "KonzVgV",
+          "UVgO"
+        ]
+      },
+      {
+        "key": "hoechstzahl_an_bewerbern",
+        "label": "Höchstzahl an Bewerbern",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx",
+          "wirt-111-5-vermerk-uvgo.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV",
+          "UVgO"
+        ]
+      },
+      {
+        "key": "fuer_ein_los_oder_mehrere_lose",
+        "label": "für ein Los oder mehrere Lose",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx",
+          "wirt-111-5-vermerk-uvgo.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV",
+          "UVgO"
+        ]
+      },
+      {
+        "key": "fuer_eine_losgruppe_oder_mehrere_losgruppen",
+        "label": "für eine Losgruppe oder mehrere Losgruppen",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx",
+          "wirt-111-5-vermerk-uvgo.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV",
+          "UVgO"
+        ]
+      },
+      {
+        "key": "fuer_eine_kombination_von_losen_oder_losgruppen",
+        "label": "für eine Kombination von Losen oder Losgruppen",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx",
+          "wirt-111-5-vermerk-uvgo.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV",
+          "UVgO"
+        ]
+      },
+      {
+        "key": "qualitaet",
+        "label": "Qualität",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx",
+          "wirt-111-5-vermerk-uvgo.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV",
+          "UVgO"
+        ]
+      },
+      {
+        "key": "stelle_raum",
+        "label": "Stelle / Raum",
+        "type": "phone",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx",
+          "wirt-111-5-vermerk-uvgo.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV",
+          "UVgO"
+        ]
+      },
+      {
+        "key": "mindestzahl_an_bewerbern",
+        "label": "Mindestzahl an Bewerbern",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "laengere_frist_20_vgv",
+        "label": "längere Frist (§ 20 VgV)",
+        "type": "date",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "laufzeit_21_abs_6_vgv",
+        "label": "Laufzeit (§ 21 Abs. 6 VgV)",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "begruendung_bei_laengerer_laufzeit_als_vier_jahre",
+        "label": "Begründung bei längerer Laufzeit als vier Jahre",
+        "type": "textarea",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "10_zuschlags_und_bindefrist_145_bgb",
+        "label": "10 - Zuschlags- und Bindefrist (§ 145 BGB)",
+        "type": "date",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "11_ausfuehrungs_lieferfrist",
+        "label": "11 - Ausführungs-/ Lieferfrist",
+        "type": "date",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "interessenbekundungen_sind_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+        "label": "Interessenbekundungen sind in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+        "label": "Teilnahmeanträge sind in folgender Form zulässig (§ 53 VgV § 19 VSVgV)",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "angebotsabgabe_ist_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+        "label": "Angebotsabgabe ist in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "vorinformation_38_vgv_beabsichtigter_tag_der_absendung",
+        "label": "Vorinformation (§ 38 VgV), (beabsichtigter) Tag der Absendung",
+        "type": "text",
+        "section": "Allgemein",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk"
+        ]
+      },
+      {
+        "key": "benennung_nur_eines_bieters_14_abs_6_vgv",
+        "label": "Benennung nur eines Bieters (§ 14 Abs. 6 VgV)",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-2-vermerk-dl.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "Vermerk"
+        ]
+      },
+      {
+        "key": "begruendung_fuer_nachweise_ausser_eigenerklaerungen",
+        "label": "Begründung für Nachweise, außer Eigenerklärungen",
+        "type": "textarea",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-5-vermerk-uvgo.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "UVgO"
+        ]
+      },
+      {
+        "key": "teilleistungen",
+        "label": "Teilleistungen",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-1-vermerk-vgv.docx",
+          "wirt-111-5-vermerk-uvgo.docx"
+        ],
+        "templateTypes": [
+          "VgV",
+          "UVgO"
+        ]
+      },
+      {
+        "key": "kurzbeschreibung_der_lose",
+        "label": "Kurzbeschreibung der Lose",
+        "type": "textarea",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "mindestanforderungen",
+        "label": "Mindestanforderungen",
+        "type": "text",
+        "section": "",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-2-vermerk-dl.docx",
+          "wirt-111-3-vermerk-verteidigung.docx"
+        ],
+        "templateTypes": [
+          "Vermerk",
+          "VSVgV"
+        ]
+      },
+      {
+        "key": "datum",
+        "label": "Datum",
+        "type": "date",
+        "section": "Allgemein",
+        "required": false,
+        "description": "",
+        "templates": [
+          "wirt-111-vorvermerk.docx",
+          "wirt-211-eu-p.docx"
+        ],
+        "templateTypes": [
+          "Vorvermerk",
+          "Sonstige"
+        ]
+      }
+    ],
+    "fieldsByType": {
+      "text": [
+        "Vorinformation (§ 38 VgV), (beabsichtigter) Tag der Absendung",
+        "Benennung nur eines Bieters (§ 14 Abs. 6 VgV)",
+        "Höchstzahl an Bewerbern",
+        "Mindestzahl an Bewerbern",
+        "Laufzeit (§ 21 Abs. 6 VgV)",
+        "für ein Los oder mehrere Lose",
+        "für eine Losgruppe oder mehrere Losgruppen",
+        "für eine Kombination von Losen oder Losgruppen",
+        "Teilleistungen",
+        "Qualität",
+        "Interessenbekundungen sind in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+        "Teilnahmeanträge sind in folgender Form zulässig (§ 53 VgV § 19 VSVgV)",
+        "Angebotsabgabe ist in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+        "Mindestanforderungen",
+        "Vorinformation (§ 17 VSVgV), (beabsichtigter) Tag der Absendung",
+        "Laufzeit (§ 3 KonzVgV)",
+        "mehrstufiges Verfahren",
+        "Teilnahmeanträge sind in folgender Form zulässig (§ 28 KonzVgV)",
+        "Angebotsabgabe ist in folgender Form zulässig (§ 28 KonzVgV)",
+        "Benennung nur eines Bieters (§ 8 Abs. 4 Nr. 10 UVgO)",
+        "Mindestzahl an Bewerben",
+        "Höhe",
+        "Dauer",
+        "Höchstzahl der Lose, die an einen Bieter vergeben werden",
+        "andere Medien",
+        "sind hinterlegt",
+        "Preis",
+        "Kosten",
+        "Teilnahmeanträge sind in folgender Form zulässig (§ 38 UVgO)",
+        "Angebote sind in folgender Form zulässig (§ 38 UVgO)",
+        "Termin / Uhrzeit (§ 40 Abs. 1 UVgO)",
+        "Freitext",
+        "Lose",
+        "Teilnahmeanträge sind in folgender Form zulässig",
+        "Angebotsabgabe ist in folgender Form zulässig",
+        "Termin / Uhrzeit",
+        "Sonstiges",
+        "CPV-Nr(n). und Kurzbezeichnung",
+        "Grundlage der Schätzung",
+        "Ergebnis der Prüfung",
+        "Fax",
+        "Vergabeart",
+        "Uhrzeit",
+        "Anlagen",
+        "A) Folgende Unterlagen verbleiben beim Bieter und sind im Vergabeverfahren zu beachten",
+        "B) Folgende Unterlagen verbleiben beim Bieter und werden Vertragsbestandteil",
+        "Wirt-2145\tBVB  über Umweltschutzanforderungen ggf. mit Anlage(n) zu Nr. 1 und 2",
+        "C) Folgende Unterlagen sind - soweit erforderlich - ausgefüllt dem Angebot beizufügen",
+        "4\tZusatz für Bietergemeinschaften",
+        "Bei zugelassener Angebotsabgabe für mehr als ein Los",
+        "Beschränkung der Zahl der Lose, für die ein Bieter den Zuschlag erhalten kann",
+        "nur für nachfolgend genannte Bereiche",
+        "mit Ausnahme nachfolgend genannter Bereiche",
+        "unter folgenden weiteren Bedingungen",
+        "Weitere Zuschlagskriterien",
+        "Abweichende Zuschlagskriterien bei losweiser Vergabe für folgende Lose",
+        "Angebote können abgegeben werden",
+        "Maßnahmennummer",
+        "Maßnahme",
+        "Vergabenummer",
+        "Leistung",
+        "Verhandlungen werden in Klicken Sie hier, um Text einzugeben. Phasen geführt",
+        "Bei einer in Teillose aufgeteilten Leistung kann der Auftraggeber die Zahl der Lose pro Bieter limitieren; die losweise Vergabe erfolgt gemäß nachfolgenden Bedingungen"
+      ],
+      "textarea": [
+        "Begründung",
+        "Begründung bei längerer Laufzeit als vier Jahre",
+        "Begründung für Nachweise, außer Eigenerklärungen",
+        "Kurzbeschreibung der Lose",
+        "Begründung bei längerem Zeitraum als fünf Jahre",
+        "Begründung bei nicht-elektronischer Kommunikation (§ 7 Abs. 1 und 4 UVgO, § 38 Abs. 4 und 6 UVgO)"
+      ],
+      "date": [
+        "längere Frist (§ 20 VgV)",
+        "10 - Zuschlags- und Bindefrist (§ 145 BGB)",
+        "11 - Ausführungs-/ Lieferfrist",
+        "angemessene Frist (§ 20 VgV)",
+        "längere Frist (§ 27 Abs. 1, 2 KonzVgV)",
+        "Ausführungsfrist (§ 28 Abs. 2 Nr. 8 UVgO)",
+        "Bindefrist (§ 28 Abs. 2 Nr. 10 UVgO)",
+        "Angebotsfrist",
+        "Ausführungs-/ Lieferfrist",
+        "Datum",
+        "Ablauf der Angebotsfrist",
+        "Bindefrist endet am",
+        "Bei schriftlicher Angebotsabgabe ist das beigefügte Angebotsschreiben zu unterzeichnen und zusammen mit den Anlagen in verschlossenem Umschlag bis zum Ablauf der Angebotsfrist an die Anschrift folgender Stelle zu senden oder dort abzugeben"
+      ],
+      "phone": [
+        "andere Art der Zurverfügungstellung",
+        "Stelle / Raum",
+        "werden auf einem anderen Weg übermittelt",
+        "Vergabestelle (sofern nicht mit Auftraggeber identisch)",
+        "Auskunft gebende Stelle (sofern nicht mit Vergabestelle identisch)",
+        "Haushaltsmittel",
+        "Tel.",
+        "D) Folgende Unterlagen sind auf gesondertes Verlangen der Vergabestelle einzureichen",
+        "Die Kommunikation erfolgt in Textform unter der Anschrift folgender Stelle",
+        "Modelle, Muster und Proben sind auf dem Postweg einzureichen unter der Anschrift folgender Stelle"
+      ],
+      "number": [
+        "Anzahl der Auftragnehmer"
+      ],
+      "email": [
+        "E-Mail"
+      ],
+      "currency": [
+        "Kriterien für die Wertung der Haupt- und ggf. Nebenangebote"
+      ]
+    }
+  }
+}

@@ -1,10 +1,10 @@
 {
-  "analyzedAt": "2025-07-22T03:59:44.408Z",
+  "analyzedAt": "2025-07-22T04:15:53.462Z",
   "templateCount": 4,
   "templates": [
     {
       "template": "wirt-111-1-vgv.docx",
-      "analyzedAt": "2025-07-22T03:59:44.076Z",
+      "analyzedAt": "2025-07-22T04:15:53.136Z",
       "sections": [],
       "fieldCount": 1,
       "fields": [
@@ -23,7 +23,7 @@
     },
     {
       "template": "wirt-111-5-uvgo.docx",
-      "analyzedAt": "2025-07-22T03:59:44.261Z",
+      "analyzedAt": "2025-07-22T04:15:53.326Z",
       "sections": [],
       "fieldCount": 1,
       "fields": [
@@ -42,14 +42,14 @@
     },
     {
       "template": "wirt-1231-eu-p-aufforderung.docx",
-      "analyzedAt": "2025-07-22T03:59:44.332Z",
+      "analyzedAt": "2025-07-22T04:15:53.387Z",
       "sections": [],
       "fieldCount": 0,
       "fields": []
     },
     {
       "template": "wirt-211-eu-p.docx",
-      "analyzedAt": "2025-07-22T03:59:44.406Z",
+      "analyzedAt": "2025-07-22T04:15:53.459Z",
       "sections": [],
       "fieldCount": 0,
       "fields": []

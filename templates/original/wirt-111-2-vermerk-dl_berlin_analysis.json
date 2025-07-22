@@ -1,0 +1,187 @@
+{
+  "template": "wirt-111-2-vermerk-dl.docx",
+  "analyzedAt": "2025-07-22T04:20:43.493Z",
+  "templateType": "Vermerk",
+  "sections": [
+    ""
+  ],
+  "fieldCount": 22,
+  "fields": [
+    {
+      "key": "vorinformation_38_vgv_beabsichtigter_tag_der_absendung",
+      "label": "Vorinformation (§ 38 VgV), (beabsichtigter) Tag der Absendung",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "begruendung",
+      "label": "Begründung",
+      "type": "textarea",
+      "section": "Allgemein",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "benennung_nur_eines_bieters_14_abs_6_vgv",
+      "label": "Benennung nur eines Bieters (§ 14 Abs. 6 VgV)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "hoechstzahl_an_bewerbern",
+      "label": "Höchstzahl an Bewerbern",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "mindestzahl_an_bewerbern",
+      "label": "Mindestzahl an Bewerbern",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "laengere_frist_20_vgv",
+      "label": "längere Frist (§ 20 VgV)",
+      "type": "date",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "angemessene_frist_20_vgv",
+      "label": "angemessene Frist (§ 20 VgV)",
+      "type": "date",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "laufzeit_21_abs_6_vgv",
+      "label": "Laufzeit (§ 21 Abs. 6 VgV)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "begruendung_bei_laengerer_laufzeit_als_vier_jahre",
+      "label": "Begründung bei längerer Laufzeit als vier Jahre",
+      "type": "textarea",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "kurzbeschreibung_der_lose",
+      "label": "Kurzbeschreibung der Lose",
+      "type": "textarea",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "fuer_ein_los_oder_mehrere_lose",
+      "label": "für ein Los oder mehrere Lose",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "fuer_eine_losgruppe_oder_mehrere_losgruppen",
+      "label": "für eine Losgruppe oder mehrere Losgruppen",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "fuer_eine_kombination_von_losen_oder_losgruppen",
+      "label": "für eine Kombination von Losen oder Losgruppen",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "mindestanforderungen",
+      "label": "Mindestanforderungen",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "qualitaet",
+      "label": "Qualität",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "10_zuschlags_und_bindefrist_145_bgb",
+      "label": "10 - Zuschlags- und Bindefrist (§ 145 BGB)",
+      "type": "date",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "11_ausfuehrungs_lieferfrist",
+      "label": "11 - Ausführungs-/ Lieferfrist",
+      "type": "date",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "interessenbekundungen_sind_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+      "label": "Interessenbekundungen sind in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "teilnahmeantraege_sind_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+      "label": "Teilnahmeanträge sind in folgender Form zulässig (§ 53 VgV § 19 VSVgV)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "angebotsabgabe_ist_in_folgender_form_zulaessig_53_vgv_19_vsvgv",
+      "label": "Angebotsabgabe ist in folgender Form zulässig (§ 53 VgV, § 19 VSVgV)",
+      "type": "text",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "andere_art_der_zurverfuegungstellung",
+      "label": "andere Art der Zurverfügungstellung",
+      "type": "phone",
+      "section": "",
+      "required": false,
+      "description": ""
+    },
+    {
+      "key": "stelle_raum",
+      "label": "Stelle / Raum",
+      "type": "phone",
+      "section": "",
+      "required": false,
+      "description": ""
+    }
+  ]
+}

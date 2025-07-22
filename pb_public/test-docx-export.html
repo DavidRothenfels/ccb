@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCX Export Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .test-status {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        .test-status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .test-status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .test-status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .document-preview {
+            background: white;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 1rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>DOCX Export Funktionalitätstest</h1>
+        
+        <div class="test-section">
+            <h2>1. Bibliotheken-Status</h2>
+            <div id="libraryStatus"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>2. Anmeldung</h2>
+            <form id="loginForm" style="max-width: 400px;">
+                <div class="form-group">
+                    <label>E-Mail</label>
+                    <input type="email" id="email" value="test@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Passwort</label>
+                    <input type="password" id="password" value="testpassword123" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Anmelden</button>
+            </form>
+            <div id="loginStatus"></div>
+        </div>
+        
+        <div class="test-section" id="projectSection" style="display: none;">
+            <h2>3. Projekt erstellen/laden</h2>
+            <button id="createProjectBtn" class="btn btn-primary">Test-Projekt erstellen</button>
+            <div id="projectStatus"></div>
+        </div>
+        
+        <div class="test-section" id="documentSection" style="display: none;">
+            <h2>4. Dokumente generieren</h2>
+            <button id="generateDocsBtn" class="btn btn-primary">Dokumente generieren</button>
+            <div id="documentStatus"></div>
+            <div id="documentsList"></div>
+        </div>
+        
+        <div class="test-section" id="exportSection" style="display: none;">
+            <h2>5. DOCX Export Test</h2>
+            <div id="exportTests"></div>
+            <button id="downloadAllBtn" class="btn btn-primary" style="margin-top: 1rem;">Alle als ZIP herunterladen</button>
+            <div id="zipStatus"></div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+    <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="docx-generator.js"></script>
+    <script>
+        const pb = new PocketBase('http://localhost:8091');
+        let currentUser = null;
+        let currentProject = null;
+        let templates = [];
+        let documents = [];
+        
+        // Check library status
+        function checkLibraries() {
+            const status = document.getElementById('libraryStatus');
+            const libraries = [
+                { name: 'PocketBase', available: typeof PocketBase !== 'undefined' },
+                { name: 'docx', available: typeof window.docx !== 'undefined' },
+                { name: 'JSZip', available: typeof JSZip !== 'undefined' },
+                { name: 'generateDocxFromDocument', available: typeof window.generateDocxFromDocument !== 'undefined' }
+            ];
+            
+            libraries.forEach(lib => {
+                const div = document.createElement('div');
+                div.className = `test-status ${lib.available ? 'success' : 'error'}`;
+                div.textContent = `${lib.name}: ${lib.available ? '✓ Geladen' : '✗ Nicht verfügbar'}`;
+                status.appendChild(div);
+            });
+        }
+        
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = document.getElementById('loginStatus');
+            
+            try {
+                const authData = await pb.collection('users').authWithPassword(
+                    document.getElementById('email').value,
+                    document.getElementById('password').value
+                );
+                currentUser = authData.record;
+                
+                status.innerHTML = `<div class="test-status success">✓ Angemeldet als: ${currentUser.email}</div>`;
+                document.getElementById('projectSection').style.display = 'block';
+                
+                // Load templates
+                templates = await pb.collection('templates').getList(1, 50, {
+                    filter: 'active = true'
+                });
+                status.innerHTML += `<div class="test-status info">Verfügbare Templates: ${templates.items.length}</div>`;
+                
+            } catch (error) {
+                status.innerHTML = `<div class="test-status error">✗ Anmeldung fehlgeschlagen: ${error.message}</div>`;
+            }
+        });
+        
+        // Create/Load Project
+        document.getElementById('createProjectBtn').addEventListener('click', async () => {
+            const status = document.getElementById('projectStatus');
+            
+            try {
+                // Check for existing project
+                const projects = await pb.collection('projects').getList(1, 1, {
+                    filter: 'name = "DOCX Export Test"'
+                });
+                
+                if (projects.items.length > 0) {
+                    currentProject = projects.items[0];
+                    status.innerHTML = `<div class="test-status info">Vorhandenes Projekt geladen: ${currentProject.name}</div>`;
+                } else {
+                    // Create new project
+                    currentProject = await pb.collection('projects').create({
+                        name: 'DOCX Export Test',
+                        description: 'Test für DOCX Export Funktionalität',
+                        procurement_type: 'Dienstleistung',
+                        threshold_type: 'unterschwellig',
+                        status: 'draft',
+                        user: currentUser.id,
+                        form_data: {
+                            vergabestelle_name: 'Senatsverwaltung für Wirtschaft, Energie und Betriebe',
+                            vergabestelle_anschrift: 'Martin-Luther-Straße 105, 10825 Berlin',
+                            vergabestelle_ansprechpartner: 'Dr. Anna Schmidt',
+                            vergabestelle_telefon: '030 9013-8000',
+                            vergabestelle_email: 'vergabestelle@senweb.berlin.de',
+                            auftrag_bezeichnung: 'Beratungsleistungen City Challenge Berlin 2025',
+                            auftrag_beschreibung: 'Umfassende Beratung und Unterstützung bei der Durchführung der City Challenge Berlin 2025, einschließlich Konzeptentwicklung, Teilnehmerbetreuung und Veranstaltungsmanagement.',
+                            cpv_code: '79410000-1',
+                            cpv_bezeichnung: 'Unternehmensberatung',
+                            geschaetzter_auftragswert: '250000',
+                            vergabenummer: 'SenWEB-2025-001',
+                            angebotsfrist_datum: '2025-02-15',
+                            angebotsfrist_uhrzeit: '14:00',
+                            angebotsfrist_ort: 'Vergabestelle SenWEB, Raum 4.15',
+                            leistungszeitraum_beginn: '2025-03-01',
+                            leistungszeitraum_ende: '2025-12-31',
+                            zuschlagskriterien: 'Preis 40%, Qualität 60%',
+                            eignungskriterien: 'Referenzen, Fachkunde, Zuverlässigkeit',
+                            nebenangebote_zugelassen: false,
+                            varianten_zugelassen: false,
+                            elektronische_einreichung: true,
+                            bindefrist: '90 Tage',
+                            veroeffentlichung_datum: '2025-01-15'
+                        }
+                    });
+                    status.innerHTML = `<div class="test-status success">✓ Neues Projekt erstellt: ${currentProject.name}</div>`;
+                }
+                
+                document.getElementById('documentSection').style.display = 'block';
+                
+            } catch (error) {
+                status.innerHTML = `<div class="test-status error">✗ Fehler: ${error.message}</div>`;
+            }
+        });
+        
+        // Generate Documents
+        document.getElementById('generateDocsBtn').addEventListener('click', async () => {
+            const status = document.getElementById('documentStatus');
+            const list = document.getElementById('documentsList');
+            
+            try {
+                status.innerHTML = '<div class="test-status info">Generiere Dokumente...</div>';
+                
+                // Delete existing documents
+                const existingDocs = await pb.collection('documents').getList(1, 100, {
+                    filter: `project = "${currentProject.id}"`
+                });
+                
+                for (const doc of existingDocs.items) {
+                    await pb.collection('documents').delete(doc.id);
+                }
+                
+                // Filter applicable templates
+                const applicableTemplates = templates.items.filter(template => {
+                    if (currentProject.threshold_type === 'oberschwellig') {
+                        return ['VgV', 'VgV_UVgO', 'SektVO'].includes(template.category);
+                    } else {
+                        return ['UVgO', 'VgV_UVgO'].includes(template.category);
+                    }
+                });
+                
+                status.innerHTML += `<div class="test-status info">Gefundene Templates: ${applicableTemplates.length}</div>`;
+                
+                // Generate documents
+                documents = [];
+                for (const template of applicableTemplates) {
+                    const doc = await pb.collection('documents').create({
+                        project: currentProject.id,
+                        template: template.id,
+                        filled_content: {
+                            ...template.template_content,
+                            filled_data: currentProject.form_data
+                        },
+                        version: 1
+                    });
+                    doc.expand = { template };
+                    documents.push(doc);
+                }
+                
+                status.innerHTML += `<div class="test-status success">✓ ${documents.length} Dokumente generiert</div>`;
+                
+                // Show document list
+                list.innerHTML = '<h3>Generierte Dokumente:</h3>';
+                documents.forEach(doc => {
+                    const div = document.createElement('div');
+                    div.className = 'document-preview';
+                    div.innerHTML = `
+                        <h4>${doc.expand.template.name}</h4>
+                        <p>Template ID: ${doc.template}</p>
+                        <p>Kategorie: ${doc.expand.template.category}</p>
+                        <p>Felder: ${Object.keys(doc.expand.template.template_fields).length}</p>
+                    `;
+                    list.appendChild(div);
+                });
+                
+                document.getElementById('exportSection').style.display = 'block';
+                testExports();
+                
+            } catch (error) {
+                status.innerHTML = `<div class="test-status error">✗ Fehler: ${error.message}</div>`;
+            }
+        });
+        
+        // Test DOCX Exports
+        async function testExports() {
+            const container = document.getElementById('exportTests');
+            container.innerHTML = '';
+            
+            for (const doc of documents) {
+                const template = doc.expand.template;
+                const testDiv = document.createElement('div');
+                testDiv.style.marginBottom = '1rem';
+                testDiv.innerHTML = `
+                    <h4>${template.name}</h4>
+                    <button class="btn btn-secondary" onclick="testSingleExport('${doc.id}')">DOCX testen</button>
+                    <div id="export-status-${doc.id}"></div>
+                `;
+                container.appendChild(testDiv);
+            }
+        }
+        
+        // Test single document export
+        window.testSingleExport = async function(docId) {
+            const doc = documents.find(d => d.id === docId);
+            const statusDiv = document.getElementById(`export-status-${docId}`);
+            
+            try {
+                statusDiv.innerHTML = '<div class="test-status info">Generiere DOCX...</div>';
+                
+                const docxDoc = await window.generateDocxFromDocument(doc, currentProject, doc.expand.template);
+                
+                if (!docxDoc) {
+                    throw new Error('Dokument konnte nicht generiert werden');
+                }
+                
+                const blob = await window.docx.Packer.toBlob(docxDoc);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentProject.name}_${doc.expand.template.name}.docx`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                statusDiv.innerHTML = `<div class="test-status success">✓ DOCX heruntergeladen: ${a.download}</div>`;
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="test-status error">✗ Fehler: ${error.message}</div>`;
+                console.error('Export error:', error);
+            }
+        };
+        
+        // Download all as ZIP
+        document.getElementById('downloadAllBtn').addEventListener('click', async () => {
+            const status = document.getElementById('zipStatus');
+            
+            try {
+                status.innerHTML = '<div class="test-status info">Erstelle ZIP-Archiv...</div>';
+                
+                const zip = new JSZip();
+                const projectName = currentProject.name.replace(/[^a-z0-9]/gi, '_');
+                
+                for (const doc of documents) {
+                    const template = doc.expand.template;
+                    status.innerHTML += `<div class="test-status info">Verarbeite: ${template.name}</div>`;
+                    
+                    const docxDoc = await window.generateDocxFromDocument(doc, currentProject, template);
+                    if (docxDoc) {
+                        const blob = await window.docx.Packer.toBlob(docxDoc);
+                        const filename = `${template.name.replace(/[^a-z0-9]/gi, '_')}.docx`;
+                        zip.file(filename, blob);
+                    }
+                }
+                
+                const content = await zip.generateAsync({type: 'blob'});
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${projectName}_Vergabedokumente.zip`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                status.innerHTML = `<div class="test-status success">✓ ZIP-Archiv heruntergeladen: ${a.download}</div>`;
+                
+            } catch (error) {
+                status.innerHTML = `<div class="test-status error">✗ Fehler: ${error.message}</div>`;
+                console.error('ZIP error:', error);
+            }
+        });
+        
+        // Initialize
+        checkLibraries();
+    </script>
+</body>
+</html>

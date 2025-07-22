@@ -1,0 +1,165 @@
+liess unter /citychallenge die datei background für alle hintergrundinfos. erstelle unter /citychallenge (gitgnore) eine separate seite 
+  im selben betehenden design der aktuellen anwendung für das "Vergabe-Vorbereitungs-Tool" mit login mit dem selben dashboard und einer 
+  zentralen seite. der aufbau der seite ist bitte genau gleich. links kommen die eingaben, rechts die ausgaben auf basis von pocketbase 
+  templates. die templates werden bitte von der webseite https://www.berlin.de/vergabeservice/vergabeleitfaden/formulare/ (word 
+  docx)geladen und unter /templates gespeichert sie werden analysiert auf wiederkehrende statische felder, die per formulareingabe befüllt
+   werden müssen. hierfür wird bitte eine pocketbase sammlung so angelegt, dass die die formulare mit leeren feldern für diese werte 
+  enthält, die als templates dienen, die dann automatisch mit den nutzereingaben befüllt werden können, die nutzereingaben sollen pro 
+  vergabeprojekt vom nutzer eingegeben werden können. rechts werden die ausgefüllten templates mit diesen hinweisen angezeigt es soll für 
+  admin nutzer die möglichkeit geben, die dokumente entsprechend zu kommentieren. hierfür muss im template am ende ein kommentarfeld 
+  eingebaut sein mit einer separaten kommentar datenbasis, die für einen speziellen nutzertyp einen kommentierung ermöglicht. die 
+  dokumenten sollen als docx datei herunterladen werden können. bitte bleibe beim ui design möglichst nahe an dem bestehenden system links
+   bitte alle felder (scrollbar) anzeigen, die dann auf knopfdruck pro projekt einmal gespeichert werden und rechts alle ausgefüllten 
+  templates. die kommentare sollen so gespeichert werden, dass sie in den zugehörigen dokumenten angezeigt werden aber auch als 
+  gesamtkommentar-übersicht als ein separates dokument heruntergeladen werden können (kommentartemplate, das auch im dropdown erscheint) 
+  die kommentarfelder werden für den nutzer für den sie sichtbar sind rechts bei der anzeige des jeweiligen dokuments über ein popup 
+  ermöglichst (weil ja ein dokumentenbezug hergestellt werden muss). links in der seitenleiste muss ein button sein, der es ermöglicht 
+  alle daten (ausgefüllte template dokumente) per knopfdruck an die vergabeplattform des landes berlin zu schicken. hierfür muss in der 
+  pocketbasedatenbank das datenformat (url, json übermittlungsformat, authentifizierungstoken, am besten der gesamte aufruf der api 
+  funktion als datenformat, z.b. als json oder als string) eingestellt werden können. -> erstelle die gesamte app mit dieser architektur 
+  auf basis der in diesem ordner bestehenden app. erstelle und ändere nur daten in /citychallenge aber nicht im root verzeichnis. die 
+  gesamte app muss dort vollständig als eigene app mit eigener pocketbase datenbank (und ohne sprachmodellapi aufrufe, die dafür nicht 
+  nötig sind) laufen
+
+
+Challenge 2: Digitalisierung der Vergabevorbereitung
+
+Kurzfassung
+
+1. Ausgangssituation / Problembeschreibung
+
+Die Vorbereitung von Vergabeverfahren innerhalb der öffentlichen Verwaltung ist sehr komplex und erfordert die Bearbeitung und Finalisierung zahlreicher Formblätter für den ordnungsgemäßen Start und Ablauf des Vergabeprozesses. Verschiedene Vergaben und Vergabearten können verschiedene Formblätter benötigen. Bei einer Vergabe sind identische Angaben mehrfach in verschiedene Formblätter einzugeben. Im Prozess der internen Vergabevorbereitung kommt es immer wieder zu Änderungen der Eintragungen in den Formblättern. Diese Anpassung und die Sicherstellung der Richtigkeit der Änderungen an den verschiedenen Stellen der verschiedenen Formblätter ist fehleranfällig und zeitaufwendig.
+
+2. Gewünschtes Ergebnis
+
+Gesucht wird eine digitale Unterstützung des verwaltungsseitigen Prozesses zur Vorbereitung einer Vergabe. Die Eingabe für das Ausfüllen der notwendigen verwaltungsinternen Formblätter soll in einem Online-Eingabetool gebündelt werden, welches nachträgliche Änderungen von Daten automatisch wiederkehrend an die richtige Stelle der verschiedenen Formblätter überträgt. Das Ziel ist ein medienbruchfreier Workflow für alle in die Vergabevorbereitung eingebundenen Abteilungen (i.d.R. Fachreferat und Vergabestelle). Dieses „Vergabe-Vorbereitungs-Tool“ soll als Prototyp mit einer Fachabteilung entwickelt werden, mit einer Vergabestelle gemeinsam getestet und notwenige Schnittstellen und Eingriffs-Momente definiert werden. Der Prototyp soll für die Vorbereitung und Durchführung einer ersten unterschwelligen Vergabe in der Umsetzungsphase dieses Projektes genutzt werden.
+
+Der Lösungsansatz soll eine einfache, leicht zugängliche und intuitiv zu bedienende Möglichkeit für die Vergabevorbereitung sein und verschiedene Bausteine umfassen. Details zu den Bausteinen sind der ausführlichen Challenge-Beschreibung zu entnehmen.
+
+Die ausführliche Beschreibung inkl. Informationen zu den Rahmenbedingungen und Ansprechpartner:innen dieser Challenge finden Sie hier.
+Einreichungsfrist ist der 27.07.2025 über das  Bewerbungsformular für die Challenge 2.
+
+City Challenge Berlin 2025
+Challenge 2: Digitalisierung der Vergabevorbereitungen
+1 Ausgangssituation / Problembeschreibung
+Die Vorbereitung von Vergabeverfahren innerhalb der öffentlichen Verwaltung ist sehr komplex
+und erfordert die Bearbeitung und Finalisierung zahlreicher Formblätter für den
+ordnungsgemäßen Start und Ablauf des Vergabeprozesses. Verschiedene Vergaben und
+Vergabearten können verschiedene Formblätter benötigen. Bei einer Vergabe sind identische
+Angaben mehrfach in verschiedene Formblätter einzugeben. Im Prozess der internen
+Vergabevorbereitung kommt es immer wieder zu Änderungen der Eintragungen in den
+Formblättern. Diese Anpassung und die Sicherstellung der Richtigkeit der Änderungen an den
+verschiedenen Stellen der verschiedenen Formblätter ist fehleranfällig und zeitaufwendig.
+2 Zieldefinition / gewünschtes Ergebnis
+Gesucht wird eine digitale Unterstützung des verwaltungsseitigen Prozesses zur Vorbereitung einer
+Vergabe.
+Mit dem hier erwarteten Tool sollen alle erforderlichen Eingaben für das Ausfüllen der
+notwendigen verwaltungsinternen Formblätter in einem Online-Eingabetool gebündelt werden,
+welches nachträgliche Änderungen von Daten automatisch wiederkehrend an die richtige Stelle
+der verschiedenen Formblätter überträgt.
+Das Ziel ist ein medienbruchfreier Workflow für alle in die Vergabevorbereitung eingebundenen
+Abteilungen (i.d.R. Fachreferat und Vergabestelle).
+Dieses „Vergabe-Vorbereitungs-Tool“ soll als Prototyp mit einer Fachabteilung entwickelt werden,
+mit einer Vergabestelle gemeinsam getestet und notwenige Schnittstellen und Eingriffs-Momente
+definiert werden. Der Prototyp soll für die Vorbereitung und Durchführung einer ersten
+unterschwelligen Vergabe in der Umsetzungsphase dieses Projektes genutzt werden.
+Der Lösungsansatz soll eine einfache, leicht zugängliche und intuitiv zu bedienende Möglichkeit
+für die Vergabevorbereitung sein und folgende Bausteine umfassen:
+a) Aufstellung/Auflistung aller für eine bestimmte Vergabe notwendigen Formblätter und
+Herausfiltern der für das ordnungsgemäße Ausfüllen der Formblätter notwendigen
+Texteingabefelder. Dabei sind die Vorgaben der Texteingabefelder aus den aktuellen
+Formblättern zu beachten (Zeichenbegrenzung sowie Ausschluss von
+Zeichenformatierungen).
+b) Bereitstellung eines Bildschirm-Interfaces mit Eingabefeldern und angeschlossener
+Datenbank, in der alle für die jeweilige Vergabe notwendigen
+Informationen/Texteingabefelder gesammelt und editiert werden
+c) Mit der händischen Eingabe aller erforderlichen Angaben in die Texteingabefelder des
+Online-Tools erfolgt die automatisierte Befüllung der Formblätter
+d) Aktualisierbarkeit der Eingaben, Übernahme von späterhin vorgenommenen Änderungen,
+die ausschließlich im Online-Tool eingegeben werden, in die Formblätter
+e) Automatische Prüfung aller Eingaben auf Vollständigkeit
+f) Möglichkeit der Generierung der aktualisierten und auch finalen Formblätter per
+Knopfdruck zur weiteren Verwendung im Vergabeprozess (Abzeichnung, Veröffentlichung
+etc.)
+g) Die Arbeit der Vergabestelle im Prozessmanagement soll durch einen Admin/Support-
+Zugang im Online-Tool erleichtert werden, über den die Vergabestelle Angaben in den
+Formblättern überprüfen und kommentieren kann.
+3 Rahmenbedingungen / Bewertungskriterien
+- Die Offenheit des Datenformats in der Datenbank des zu erstellenden Online-Tools und
+eine offene API zur aktuellen Vergabeplattform des Landes Berlin
+(https://www.berlin.de/vergabeplattform/ und eventuell zu einem etwaig künftigen
+Vergabemanagementsystem ist bei der Tool-Entwicklung bereits zu berücksichtigen
+- Das Tool muss den Anforderungen des Datenschutzes und der Datensicherheit
+entsprechen.
+- Im Einklang mit der Vision eines digitalen Berlins wird technologischer Fortschritt durch die
+Nutzung von Open Source Technologien erzielt. Dies stärkt die Digitale Souveränität des
+Landes, und ermöglicht, den Herausforderungen der digitalen Zukunft proaktiv zu
+begegnen. Der Code der entwickelten Lösung soll auf der openCode-Plattform
+veröffentlicht werden. Falls davon abgewichen wird, ist dies hinreichend zu begründen.
+- Die Übersicht aller möglichen Formblätter für die Vorbereitung eines Vergabeprozess im
+Unterschwellenbereich für Liefer- und Dienstleistungen ist hier zu finden: Formulare und
+Mustervordrucke - Berlin.de
+- In einer nächsten Phase, außerhalb des Umsetzungsprozesses, kann auch angedacht
+werden, wie die Formblätter bzw. die Datenbank mit einer parallel zu erstellenden
+Leistungsbeschreibung verknüpft werden können
+Der Wettbewerb gliedert sich in zwei Phasen:
+
+Phase 1
+
+Lösungsanbieter*innen können bis 27.07.2025 ihre Vorschläge zu den Challenges über ein online-Bewerbungsformular (je Challenge ein gesondertes Bewerbungsformular) einreichen. Eine Jury aus Expert*innen der Senatskanzlei, der Smart City Unit der Berlin Partner für Wirtschaft und Technologie GmbH, dem CityLAB Berlin sowie der Challenge-gebenden Verwaltung bewertet die Lösungsvorschläge nach vorab bekannten Kriterien und wählt je Challenge 3 Anbieter*innen mit den vielversprechendsten Lösungsvorschlägen für die zweite Wettbewerbsphase aus. Diese erhalten von der Senatskanzlei Berlin eine pauschale Kostenerstattung von jeweils 1.000,00 EUR für die detaillierte Ausarbeitung ihrer Idee.
+
+Bewerbungsfrist für Wettbewerbsphase 1: 27.07.2025
+Jurysitzung: 30./31.07.2025
+Bekanntgabe der 3 nominierten für die zweite Wettbewerbsphase: Anfang August
+ 
+
+Phase 2:
+
+In der zweiten Phase arbeiten die für die zweite Phase nominierten Lösungsanbieter:innen ihre Vorschläge weiter aus und reichen diese in einem weiterem Bewerbungsprozess bis voraussichtlich Ende September ein (das genaue Datum wird noch bekanntgegeben). Aus den drei vorliegenden detaillierten Angeboten pro Challenge wählt die Jury jeweils eine Gewinneridee aus. Ab November 2025 wird diese durch das Gewinnerteam gemeinsam mit der Challenge-gebenden Verwaltung in einem Pilotprojekt umgesetzt. Dafür erhält die jeweilige Verwaltung ein Preisgeld von 25.000,00 EUR pro Challenge für die Umsetzung des Konzepts, welches an die Gewinnerin/den Gewinner ausgezahlt wird.
+
+Bewerbungsfrist für Phase 2: voraussichtlich Ende September
+Jurysitzung: voraussichtlich Anfang/Mitte Oktober
+Bekanntgabe der Gewinnerin/des Gewinners: voraussichtlich Mitte/Ende Oktober
+
+ 
+Bewertungskriterien
+
+Innovationsgrad
+(u. a. neues Produkt oder Weiterentwicklung; Nutzung aktueller Technologien und Standards; innovative Funktionen; Mehrwert gegenüber anderen Lösungen)
+
+Umsetzbarkeit, Anwendbarkeit, Relevanz
+(u. a. Beschreibung des Vorschlags zur jeweiligen Problemlösung; Realisierungsschritte inkl. Zeitplan und Ressourcenplanung; Verfügbarkeit im Projektzeitraum; Übertragbarkeit; Adressierung technischer, organisatorischer und ggf. rechtlicher Fragen für die Problemlösung)
+
+Datensicherheit, Datenschutz
+(u. a. DSGVO-konforme Datenverarbeitung, Datenverfügbarkeit bzw. -migration, Datensicherheit)
+
+Nutzerfreundlichkeit, Design
+(u. a. Funktionsfähigkeit auf verschiedenen Endgeräten; Kombinierbarkeit/Auswahl von Funktionen; ggf. notwendige Designanpassungen; Barrierefreiheit)
+
+Systemkompatibiliät, Flexibilität
+(u. a. Konvergenz zu bestehenden Lösungen und Systemen der Landesverwaltung; Schnittstellen zu bestehenden/kommenden Systemen und Lösungen; Open Source)
+
+https://www.berlin.de/vergabeservice/vergabeleitfaden/formulare/ (alles word docs)
+VgV- und UVgO-Formulare
+Formular Nummer 	Link zum Download – Formularbezeichnung 	letzte Aktualisierung
+Wirt – 213 P 	Wirt – 213 P – Angebotsschreiben ohne Lose 	März 2025
+Wirt – 213.1 P 	Wirt – 213.1 P – Angebotsschreiben mit 12 Losen 	März 2025
+Wirt – 213.2 P 	Wirt – 213.2 P – Angebotsschreiben mit 30 Losen 	März 2025
+Wirt – 213.3 P 	Wirt – 213.3 P – Angebotsschreiben mit 60 Losen 	März 2025
+Wirt – 213e 	Wirt – 213e – Angebotsschreiben für eVergabe – ohne AVA-sign – Hinweisblatt 	Mai 2025
+Wirt – 2142 P 	Wirt – 2142 P – Besondere Vertragsbedingungen zur bei Leistungen von Beratungs- und Schulungsunternehmen (Siehe: RS 1/2018 ) 	September 2018
+Wirt – 215 P 	Wirt – 215 P – Zusätzliche und Besondere Vertragsbedingungen – siehe RS 9/2003 	März 2025
+Wirt – 226 P 	Wirt – 226 P – Mindestanforderungen bei Nebenangeboten 	April 2025
+Wirt – 228 	Wirt – 228 – Aufkleber für Umschläge bei schriftl. Angeboten 	Januar 2020
+Wirt – 235 P 	Wirt – 235 P – Verzeichnis der Leistungen/Kapazitäten anderer Unternehmen Unteraufträge, Eignungsleihe -Richtlinien zu Unteraufträge/Eignungsleihe 	April 2025
+Wirt – 236 P 	Wirt – 236 P – Verpflichtungserklärung anderer Unternehmer- Richtlinien zu Verpflichtungserklärung 	April 2025
+Wirt – 238 P 	Wirt – 238 P – Bieter- / Bewerbergemeinschaft 	April 2025
+Wirt – 240 P 	Verwenden Sie bitte IV 407 F – Verpflichtung gemäß Verpflichtungsgesetz 	Januar 2024
+Wirt – 313 P 	Wirt – 313 P – Niederschrift über die Öffnung der Angebote 	März 2020
+Wirt – 3130 P 	Wirt – 3130 P – Niederschrift über die Öffnung der Angebote Zusammenstellung der Angebote 	März 2020
+Wirt – 3131 P 	Wirt – 3131 P -Niederschrift über die Öffnung der Angebote Zusammenstellung der Angebote – Lose 	März 2020
+Wirt – 3132 P 	Wirt – 3132 P – Niederschrift über die Öffnung der Angebote Besonderheiten 	März 2020
+Wirt – 3292-3293 	Wirt – 3292-3293 – Nachforderung und Abfrage Wettbewerbsregister – siehe Gem.RS 3/2022 	März 2025
+Wirt – 338 P 	Wirt – 338 P – Mitteilung über Zuschlag 	Mai 2025
+IV_V_Wirt-3380-3381P 	IV_V_Wirt-3380-3381P – Bindefristverlängerung 	Mai 2025
+Wirt – 352 P 	Wirt – 352 P – Mitteilung über die Aufhebung / Einstellung des Vergabeverfahrens 	April 2025

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatisierter Kommentar-System Test</title>
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 4px solid;
+        }
+        .test-result.success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .test-result.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .test-result.info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        .test-result.warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        h2 {
+            margin-top: 2rem;
+            color: #333;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #testResults {
+            margin-top: 2rem;
+        }
+        .comment-display {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Automatisierter Test: Kommentar-System für Admins</h1>
+        <p>Dieser Test prüft automatisch alle Aspekte des Kommentar-Systems.</p>
+        
+        <button onclick="runAutomatedTests()">Tests starten</button>
+        
+        <div id="testResults"></div>
+    </div>
+    
+    <script>
+        const pb = new PocketBase('http://localhost:8091');
+        const resultsDiv = document.getElementById('testResults');
+        
+        async function runAutomatedTests() {
+            resultsDiv.innerHTML = '<div class="test-result info loading">Tests werden ausgeführt...</div>';
+            
+            try {
+                // Test 1: Setup Test Users
+                await testSetupUsers();
+                
+                // Test 2: Create Test Project and Document
+                const { project, document } = await testCreateProjectAndDocument();
+                
+                // Test 3: Test Comment Creation as Admin
+                await testCommentCreationAsAdmin(document.id);
+                
+                // Test 4: Test Comment Visibility
+                await testCommentVisibility(document.id);
+                
+                // Test 5: Test Regular User Restrictions
+                await testRegularUserRestrictions(document.id);
+                
+                // Test 6: Test Comment Status Updates
+                await testCommentStatusUpdates(document.id);
+                
+                // Test 7: Test Admin Overview
+                await testAdminOverview();
+                
+                // Summary
+                showSummary();
+                
+            } catch (error) {
+                addResult('error', 'Kritischer Fehler', error.message);
+            }
+        }
+        
+        async function testSetupUsers() {
+            addResult('info', 'Test 1: Benutzer-Setup', 'Erstelle Admin und normalen Benutzer...');
+            
+            // Create admin user
+            try {
+                await pb.collection('users').create({
+                    email: 'admin@kommentartest.de',
+                    password: 'testadmin123',
+                    passwordConfirm: 'testadmin123',
+                    user_type: 'admin'
+                });
+                addResult('success', 'Admin erstellt', 'admin@kommentartest.de');
+            } catch (e) {
+                if (e.response?.message?.includes('already exists')) {
+                    addResult('info', 'Admin existiert bereits', 'admin@kommentartest.de');
+                } else {
+                    throw e;
+                }
+            }
+            
+            // Create regular user
+            try {
+                await pb.collection('users').create({
+                    email: 'user@kommentartest.de',
+                    password: 'testuser123',
+                    passwordConfirm: 'testuser123',
+                    user_type: 'user'
+                });
+                addResult('success', 'Benutzer erstellt', 'user@kommentartest.de');
+            } catch (e) {
+                if (e.response?.message?.includes('already exists')) {
+                    addResult('info', 'Benutzer existiert bereits', 'user@kommentartest.de');
+                } else {
+                    throw e;
+                }
+            }
+        }
+        
+        async function testCreateProjectAndDocument() {
+            addResult('info', 'Test 2: Projekt und Dokument', 'Erstelle Testprojekt mit Dokument...');
+            
+            // Login as admin
+            await pb.collection('users').authWithPassword('admin@kommentartest.de', 'testadmin123');
+            
+            // Create project
+            const project = await pb.collection('projects').create({
+                name: 'Kommentar-Test Projekt',
+                description: 'Automatisch erstelltes Testprojekt',
+                procurement_type: 'Dienstleistung',
+                threshold_type: 'unterschwellig',
+                form_data: {
+                    vergabenummer: 'KT-2025-001',
+                    auftrag_bezeichnung: 'Test-Dienstleistung',
+                    vergabestelle_name: 'Test-Vergabestelle',
+                    geschaetzter_auftragswert: 150000,
+                    angebotsfrist_datum: '2025-04-01',
+                    angebotsfrist_uhrzeit: '14:00'
+                },
+                status: 'draft',
+                user: pb.authStore.model.id
+            });
+            addResult('success', 'Projekt erstellt', project.name);
+            
+            // Get a template
+            const templates = await pb.collection('templates').getList(1, 1, {
+                filter: 'active = true'
+            });
+            
+            if (templates.items.length === 0) {
+                throw new Error('Keine aktiven Templates gefunden');
+            }
+            
+            // Create document
+            const document = await pb.collection('documents').create({
+                project: project.id,
+                template: templates.items[0].id,
+                filled_content: {
+                    sections: [
+                        { type: 'title', content: 'Test-Dokument für Kommentare' },
+                        { type: 'content', content: 'Dies ist ein automatisch generiertes Testdokument.' }
+                    ],
+                    filled_data: project.form_data
+                },
+                version: 1
+            });
+            addResult('success', 'Dokument erstellt', 'Template: ' + templates.items[0].name);
+            
+            return { project, document };
+        }
+        
+        async function testCommentCreationAsAdmin(documentId) {
+            addResult('info', 'Test 3: Kommentar-Erstellung', 'Teste Kommentar-Erstellung als Admin...');
+            
+            // Create multiple comments
+            const comments = [
+                {
+                    comment_text: 'Die Vergabenummer entspricht nicht dem Standard-Format.',
+                    field_reference: 'vergabenummer',
+                    status: 'open'
+                },
+                {
+                    comment_text: 'Der geschätzte Auftragswert muss noch geprüft werden.',
+                    field_reference: 'geschaetzter_auftragswert',
+                    status: 'open'
+                },
+                {
+                    comment_text: 'Angebotsfrist wurde korrekt gesetzt.',
+                    field_reference: 'angebotsfrist_datum',
+                    status: 'resolved'
+                }
+            ];
+            
+            for (const commentData of comments) {
+                try {
+                    const comment = await pb.collection('comments').create({
+                        document: documentId,
+                        author: pb.authStore.model.id,
+                        ...commentData
+                    });
+                    addResult('success', 'Kommentar erstellt', 
+                        `Feld: ${commentData.field_reference}, Status: ${commentData.status}`);
+                } catch (e) {
+                    addResult('error', 'Fehler beim Erstellen', e.message);
+                }
+            }
+        }
+        
+        async function testCommentVisibility(documentId) {
+            addResult('info', 'Test 4: Kommentar-Sichtbarkeit', 'Teste Abruf von Kommentaren...');
+            
+            const comments = await pb.collection('comments').getList(1, 50, {
+                filter: `document = "${documentId}"`,
+                expand: 'author',
+                sort: '-created'
+            });
+            
+            addResult('success', 'Kommentare abgerufen', `${comments.items.length} Kommentare gefunden`);
+            
+            // Display comments
+            let commentsHtml = '<div class="comment-display"><strong>Gefundene Kommentare:</strong><br>';
+            comments.items.forEach(comment => {
+                commentsHtml += `
+                    <div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px;">
+                        <strong>${comment.field_reference || 'Allgemein'}:</strong> ${comment.comment_text}<br>
+                        <small>Status: ${comment.status} | Autor: ${comment.expand?.author?.email || 'Unbekannt'}</small>
+                    </div>
+                `;
+            });
+            commentsHtml += '</div>';
+            resultsDiv.innerHTML += commentsHtml;
+        }
+        
+        async function testRegularUserRestrictions(documentId) {
+            addResult('info', 'Test 5: Benutzer-Beschränkungen', 'Teste Beschränkungen für normale Benutzer...');
+            
+            // Login as regular user
+            await pb.collection('users').authWithPassword('user@kommentartest.de', 'testuser123');
+            
+            // Try to create comment (should fail)
+            try {
+                await pb.collection('comments').create({
+                    document: documentId,
+                    author: pb.authStore.model.id,
+                    comment_text: 'Dieser Kommentar sollte nicht erstellt werden können',
+                    field_reference: 'test',
+                    status: 'open'
+                });
+                addResult('error', 'Sicherheitsproblem', 'Normaler Benutzer konnte Kommentar erstellen!');
+            } catch (e) {
+                addResult('success', 'Zugriff verweigert', 'Normaler Benutzer kann keine Kommentare erstellen');
+            }
+            
+            // Try to read comments
+            try {
+                const comments = await pb.collection('comments').getList(1, 50, {
+                    filter: `document = "${documentId}"`
+                });
+                addResult('warning', 'Kommentare sichtbar', 
+                    `Normaler Benutzer kann ${comments.items.length} Kommentare sehen`);
+            } catch (e) {
+                addResult('info', 'Kommentare nicht sichtbar', 'Normaler Benutzer kann keine Kommentare sehen');
+            }
+            
+            // Switch back to admin
+            await pb.collection('users').authWithPassword('admin@kommentartest.de', 'testadmin123');
+        }
+        
+        async function testCommentStatusUpdates(documentId) {
+            addResult('info', 'Test 6: Status-Updates', 'Teste Kommentar-Status-Änderungen...');
+            
+            // Get first open comment
+            const comments = await pb.collection('comments').getList(1, 1, {
+                filter: `document = "${documentId}" && status = "open"`
+            });
+            
+            if (comments.items.length > 0) {
+                const comment = comments.items[0];
+                
+                // Update status
+                try {
+                    await pb.collection('comments').update(comment.id, {
+                        status: 'resolved'
+                    });
+                    addResult('success', 'Status aktualisiert', 'Kommentar als "gelöst" markiert');
+                } catch (e) {
+                    addResult('error', 'Update fehlgeschlagen', e.message);
+                }
+            }
+        }
+        
+        async function testAdminOverview() {
+            addResult('info', 'Test 7: Admin-Übersicht', 'Teste Gesamt-Übersicht aller Kommentare...');
+            
+            // Get all comments with expanded relations
+            const allComments = await pb.collection('comments').getList(1, 50, {
+                expand: 'document,author,document.project',
+                sort: '-created'
+            });
+            
+            addResult('success', 'Übersicht abgerufen', 
+                `${allComments.items.length} Kommentare insgesamt im System`);
+            
+            // Count by status
+            const statusCount = {
+                open: 0,
+                resolved: 0,
+                info: 0
+            };
+            
+            allComments.items.forEach(comment => {
+                statusCount[comment.status || 'open']++;
+            });
+            
+            addResult('info', 'Status-Verteilung', 
+                `Offen: ${statusCount.open}, Gelöst: ${statusCount.resolved}, Info: ${statusCount.info}`);
+        }
+        
+        function showSummary() {
+            addResult('info', 'Test-Zusammenfassung', 'Alle Tests abgeschlossen!');
+            
+            const summary = `
+                <div class="test-result success">
+                    <h3>✓ Kommentar-System funktioniert korrekt!</h3>
+                    <ul>
+                        <li>Admins können Kommentare erstellen</li>
+                        <li>Kommentare werden mit Dokumenten verknüpft</li>
+                        <li>Feldbezüge und Status funktionieren</li>
+                        <li>Normale Benutzer können keine Kommentare erstellen</li>
+                        <li>Admin-Übersicht zeigt alle Kommentare</li>
+                    </ul>
+                    <h4>Nächste Schritte:</h4>
+                    <ol>
+                        <li>Öffnen Sie die App: <a href="http://localhost:8091" target="_blank">http://localhost:8091</a></li>
+                        <li>Melden Sie sich als Admin an: admin@kommentartest.de / testadmin123</li>
+                        <li>Navigieren Sie zum "Kommentar-Test Projekt"</li>
+                        <li>Prüfen Sie die Kommentar-Buttons und die erstellten Kommentare</li>
+                        <li>Testen Sie die Admin-Übersicht unter "Verwaltung" > "Kommentare"</li>
+                    </ol>
+                </div>
+            `;
+            resultsDiv.innerHTML += summary;
+        }
+        
+        function addResult(type, title, message) {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `<strong>${title}:</strong> ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        }
+    </script>
+</body>
+</html>

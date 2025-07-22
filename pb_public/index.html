@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityChallenge - Vergabe-Tool Berlin 2025</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen active">
+            <div class="login-container">
+                <div class="login-box">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div class="logo" style="justify-content: center; margin-bottom: 1rem;">
+                            <i data-feather="layers" style="color: var(--primary); width: 48px; height: 48px;"></i>
+                            <span>City<span style="color: #374151;">Challenge</span></span>
+                        </div>
+                        <p class="subtitle">Vergabe-Tool Berlin 2025</p>
+                    </div>
+                    
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="email">E-Mail</label>
+                            <input type="email" id="email" name="email" required placeholder="ihre.email@berlin.de">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Passwort</label>
+                            <input type="password" id="password" name="password" required placeholder="••••••••">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                <i data-feather="log-in"></i>
+                                <span>Anmelden</span>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="login-footer" style="margin-top: 2rem;">
+                        <p style="text-align: center; font-size: 0.875rem; color: var(--gray);">City Challenge Berlin 2025</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Application -->
+        <div id="dashboardScreen" class="screen">
+            <div class="app-container">
+                <!-- Sidebar -->
+                <aside class="sidebar" id="sidebar">
+                    <div class="logo">
+                        <i data-feather="layers" style="color: var(--primary);"></i>
+                        <span>City<span style="color: #374151;">Challenge</span></span>
+                    </div>
+                    
+                    <nav class="nav-section">
+                        <h3>NAVIGATION</h3>
+                        <div class="nav-item active" data-section="projects">
+                            <i data-feather="folder"></i>
+                            <span>Meine Projekte</span>
+                        </div>
+                    </nav>
+                    
+                    <nav class="nav-section" id="adminNav" style="display:none;">
+                        <h3>ADMINISTRATION</h3>
+                        <div class="nav-item" data-section="admin">
+                            <i data-feather="settings"></i>
+                            <span>Verwaltung</span>
+                        </div>
+                    </nav>
+                    
+                    <div class="user-info">
+                        <h4 id="sidebarUserName">Benutzer</h4>
+                        <p id="sidebarUserEmail">email@example.com</p>
+                        <button class="btn btn-secondary" id="logoutBtn" style="width: 100%;">
+                            <i data-feather="log-out"></i>
+                            <span>Abmelden</span>
+                        </button>
+                    </div>
+                </aside>
+                
+                <!-- Main Content Area -->
+                <main class="main-content">
+                    <div class="header">
+                        <h1 id="pageTitle">Meine Projekte</h1>
+                        <div class="header-actions" id="headerActions">
+                            <button id="newProjectBtn" class="btn btn-primary">
+                                <i data-feather="plus"></i>
+                                <span>Neues Projekt</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="content">
+                        <!-- Projects Section -->
+                        <section id="projectsSection" class="section active">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i data-feather="folder"></i>
+                                    <h2>Projekte</h2>
+                                </div>
+                                <div class="card-body">
+                                    <div id="projectsList" class="project-grid">
+                                        <!-- Projects will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        
+                        <!-- Admin Section -->
+                        <section id="adminSection" class="section">
+                            <div class="admin-tabs" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                                <button class="btn btn-secondary tab-btn active" data-tab="comments">Kommentare</button>
+                                <button class="btn btn-secondary tab-btn" data-tab="api">API Konfiguration</button>
+                            </div>
+                            <div id="adminContent" class="card">
+                                <!-- Admin content will be loaded here -->
+                            </div>
+                        </section>
+                    </div>
+                </main>
+            </div>
+        </div>
+        
+        <!-- Project Edit Screen -->
+        <div id="projectEditScreen" class="screen">
+            <div class="split-view-container">
+                <!-- Left Panel - Input -->
+                <div class="split-panel left-panel">
+                    <div class="panel-header">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <button id="backToDashboard" class="btn btn-secondary">
+                                <i data-feather="arrow-left"></i>
+                                <span>Zurück</span>
+                            </button>
+                            <h2>Projektdaten eingeben</h2>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-content">
+                        <form id="projectForm">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i data-feather="edit-3"></i>
+                                    <h2>Grunddaten</h2>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="projectName">Projektname</label>
+                                        <input type="text" id="projectName" name="name" required placeholder="z.B. Büromaterial Beschaffung 2025">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="projectDescription">Beschreibung</label>
+                                        <textarea id="projectDescription" name="description" rows="3" placeholder="Kurze Beschreibung des Vergabeprojekts..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="procurementType">Vergabeart</label>
+                                        <select id="procurementType" name="procurement_type" required>
+                                            <option value="">Bitte wählen</option>
+                                            <option value="Liefer">Lieferleistung</option>
+                                            <option value="Dienst">Dienstleistung</option>
+                                            <option value="Bau">Bauleistung</option>
+                                            <option value="Freiberuflich">Freiberufliche Leistung</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="thresholdType">Schwellenwert</label>
+                                        <select id="thresholdType" name="threshold_type" required>
+                                            <option value="">Bitte wählen</option>
+                                            <option value="unterschwellig">Unterschwellig (UVgO)</option>
+                                            <option value="oberschwellig">Oberschwellig (VgV)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card" style="margin-top: 1.5rem;">
+                                <div class="card-header">
+                                    <i data-feather="file-text"></i>
+                                    <h2>Template-Felder</h2>
+                                </div>
+                                <div class="card-body">
+                                    <div id="dynamicFormFields">
+                                        <!-- Dynamic form fields will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions" style="margin-top: 1.5rem;">
+                                <button type="submit" class="btn btn-ai-generate">
+                                    <i data-feather="save"></i>
+                                    <span>Speichern und Dokumente generieren</span>
+                                </button>
+                                <button type="button" id="exportToApi" class="btn btn-secondary" style="margin-top: 0.5rem; width: 100%;">
+                                    <i data-feather="send"></i>
+                                    <span>An Vergabeplattform senden</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Right Panel - Output -->
+                <div class="split-panel right-panel">
+                    <div class="panel-header">
+                        <h2>Generierte Dokumente</h2>
+                        <div class="header-actions">
+                            <button id="downloadAllBtn" class="btn btn-secondary">
+                                <i data-feather="download"></i>
+                                <span>Alle herunterladen</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-content">
+                        <div id="documentsList" class="documents-container">
+                            <div class="empty-state">
+                                <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1;"></i>
+                                <h3>Keine Dokumente vorhanden</h3>
+                                <p>Füllen Sie das Formular aus und speichern Sie, um Dokumente zu generieren.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comment Modal -->
+    <div id="commentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0;">Kommentar hinzufügen</h3>
+                <button class="close-btn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <form id="commentForm">
+                <div class="form-group">
+                    <label for="commentField">Feldbezug (optional)</label>
+                    <input type="text" id="commentField" name="field_reference" placeholder="z.B. vergabenummer">
+                </div>
+                <div class="form-group">
+                    <label for="commentText">Kommentar</label>
+                    <textarea id="commentText" name="comment_text" rows="4" required placeholder="Ihr Kommentar..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="commentStatus">Status</label>
+                    <select id="commentStatus" name="status">
+                        <option value="open">Offen</option>
+                        <option value="resolved">Gelöst</option>
+                        <option value="info">Info</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Kommentar speichern</button>
+                    <button type="button" class="btn btn-secondary close-btn">Abbrechen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- API Settings Modal -->
+    <div id="apiSettingsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0;">API-Konfiguration</h3>
+                <button class="close-btn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <form id="apiSettingsForm">
+                <div class="form-group">
+                    <label for="apiName">Konfigurationsname</label>
+                    <input type="text" id="apiName" name="name" required placeholder="z.B. Berlin Vergabeplattform">
+                </div>
+                <div class="form-group">
+                    <label for="apiUrl">API-URL</label>
+                    <input type="url" id="apiUrl" name="api_url" required placeholder="https://www.berlin.de/vergabeplattform/api/">
+                </div>
+                <div class="form-group">
+                    <label for="apiToken">Auth-Token</label>
+                    <input type="password" id="apiToken" name="auth_token" placeholder="Bearer Token">
+                </div>
+                <div class="form-group">
+                    <label for="dataFormat">Datenformat</label>
+                    <select id="dataFormat" name="data_format" required>
+                        <option value="json">JSON</option>
+                        <option value="xml">XML</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="jsonMapping">JSON-Mapping</label>
+                    <textarea id="jsonMapping" name="request_template" rows="10" placeholder='{"vergabenummer": "{{vergabenummer}}", "bezeichnung": "{{auftrag_bezeichnung}}"}' style="font-family: var(--mono);"></textarea>
+                    <small style="color: var(--gray); font-size: 0.875rem;">Verwenden Sie {{feldname}} als Platzhalter für Formularfelder</small>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" name="active" id="apiActive" style="width: auto;">
+                        <span>Diese Konfiguration aktivieren</span>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Konfiguration speichern</button>
+                    <button type="button" class="btn btn-secondary close-btn">Abbrechen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+    <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="docx-generator.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Initialize Feather Icons after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+        });
+    </script>
+</body>
+</html>

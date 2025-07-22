@@ -1,0 +1,30 @@
+# PocketBase
+pb_data/
+*.db
+*.db-shm
+*.db-wal
+pocketbase
+pocketbase.exe
+
+# Logs
+*.log
+
+# Test files
+test/*.db
+test/pb_data/
+
+# Generated documents
+generated_documents/
+*.docx
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local

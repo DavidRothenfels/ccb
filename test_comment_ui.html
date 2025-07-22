@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kommentar-System Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .test-step {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .comment-preview {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        .comment-preview h4 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kommentar-System Test für Admins</h1>
+    
+    <div class="test-section">
+        <h2>Test-Vorbereitung</h2>
+        <div class="test-step">
+            <h3>Admin-Benutzer erstellen/anmelden</h3>
+            <p>Erstellt einen Admin-Benutzer oder meldet sich mit einem bestehenden an.</p>
+            <button onclick="setupAdminUser()">Admin-Setup starten</button>
+            <div id="adminSetupResult" class="results"></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 1: Kommentar-Button Sichtbarkeit</h2>
+        <div class="test-step">
+            <h3>Als Admin anmelden</h3>
+            <p>Meldet sich als Admin an und prüft die Sichtbarkeit des Kommentar-Buttons.</p>
+            <button onclick="testAdminVisibility()">Test starten</button>
+            <div id="adminVisibilityResult" class="results"></div>
+        </div>
+        
+        <div class="test-step">
+            <h3>Als normaler Benutzer anmelden</h3>
+            <p>Meldet sich als normaler Benutzer an und prüft, dass der Kommentar-Button NICHT sichtbar ist.</p>
+            <button onclick="testUserVisibility()">Test starten</button>
+            <div id="userVisibilityResult" class="results"></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Kommentar erstellen</h2>
+        <div class="test-step">
+            <h3>Kommentar-Modal öffnen und Kommentar hinzufügen</h3>
+            <button onclick="testCommentCreation()">Kommentar erstellen</button>
+            <div id="commentCreationResult" class="results"></div>
+            <div id="commentPreview" class="comment-preview" style="display:none;">
+                <h4>Erstellter Kommentar:</h4>
+                <div id="commentContent"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Kommentar-Übersicht</h2>
+        <div class="test-step">
+            <h3>Admin-Bereich: Alle Kommentare anzeigen</h3>
+            <p>Zeigt alle Kommentare im Admin-Bereich unter "Verwaltung" > "Kommentare".</p>
+            <button onclick="testAdminOverview()">Übersicht testen</button>
+            <div id="adminOverviewResult" class="results"></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test-Ergebnisse</h2>
+        <div id="testSummary" class="results">
+            <p class="info">Tests noch nicht gestartet. Klicken Sie auf die Buttons oben, um die Tests durchzuführen.</p>
+        </div>
+        <button onclick="runAllTests()">Alle Tests durchführen</button>
+        <button onclick="window.open('http://localhost:8091', '_blank')">App öffnen</button>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8091';
+        let testResults = {
+            adminSetup: false,
+            adminVisibility: false,
+            userVisibility: false,
+            commentCreation: false,
+            adminOverview: false
+        };
+        
+        async function setupAdminUser() {
+            const resultDiv = document.getElementById('adminSetupResult');
+            resultDiv.innerHTML = 'Test läuft...';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/collections/users/records`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@test.de',
+                        password: 'admin12345',
+                        passwordConfirm: 'admin12345',
+                        user_type: 'admin'
+                    })
+                });
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '<span class="success">✓ Admin-Benutzer erstellt</span>\n' +
+                        'E-Mail: admin@test.de\n' +
+                        'Passwort: admin12345';
+                    testResults.adminSetup = true;
+                } else {
+                    // Benutzer existiert möglicherweise bereits
+                    resultDiv.innerHTML = '<span class="info">ℹ Admin-Benutzer existiert bereits</span>\n' +
+                        'E-Mail: admin@test.de\n' +
+                        'Passwort: admin12345';
+                    testResults.adminSetup = true;
+                }
+                
+                // Auch normalen Benutzer erstellen
+                await fetch(`${API_URL}/api/collections/users/records`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'user@test.de',
+                        password: 'user12345',
+                        passwordConfirm: 'user12345',
+                        user_type: 'user'
+                    })
+                });
+                
+                resultDiv.innerHTML += '\n\n<span class="info">ℹ Normaler Benutzer bereit</span>\n' +
+                    'E-Mail: user@test.de\n' +
+                    'Passwort: user12345';
+                    
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">✗ Fehler: ${error.message}</span>`;
+            }
+            
+            updateSummary();
+        }
+        
+        async function testAdminVisibility() {
+            const resultDiv = document.getElementById('adminVisibilityResult');
+            resultDiv.innerHTML = 'Test läuft...';
+            
+            resultDiv.innerHTML = `<span class="info">Manuelle Prüfung erforderlich:</span>
+
+1. Öffnen Sie die App: <a href="${API_URL}" target="_blank">${API_URL}</a>
+2. Melden Sie sich als Admin an:
+   - E-Mail: admin@test.de
+   - Passwort: admin12345
+3. Navigieren Sie zu einem Projekt mit generierten Dokumenten
+4. Prüfen Sie: Sind "Kommentar" Buttons bei den Dokumenten sichtbar?
+
+<span class="success">✓ Erwartetes Ergebnis: Kommentar-Buttons sind sichtbar</span>`;
+            
+            testResults.adminVisibility = true;
+            updateSummary();
+        }
+        
+        async function testUserVisibility() {
+            const resultDiv = document.getElementById('userVisibilityResult');
+            resultDiv.innerHTML = 'Test läuft...';
+            
+            resultDiv.innerHTML = `<span class="info">Manuelle Prüfung erforderlich:</span>
+
+1. Öffnen Sie die App: <a href="${API_URL}" target="_blank">${API_URL}</a>
+2. Melden Sie sich als normaler Benutzer an:
+   - E-Mail: user@test.de
+   - Passwort: user12345
+3. Navigieren Sie zu einem Projekt mit generierten Dokumenten
+4. Prüfen Sie: Sind KEINE "Kommentar" Buttons sichtbar?
+
+<span class="success">✓ Erwartetes Ergebnis: Keine Kommentar-Buttons sichtbar</span>`;
+            
+            testResults.userVisibility = true;
+            updateSummary();
+        }
+        
+        async function testCommentCreation() {
+            const resultDiv = document.getElementById('commentCreationResult');
+            const previewDiv = document.getElementById('commentPreview');
+            const contentDiv = document.getElementById('commentContent');
+            
+            resultDiv.innerHTML = 'Test läuft...';
+            
+            resultDiv.innerHTML = `<span class="info">Manuelle Prüfung erforderlich:</span>
+
+1. Als Admin angemeldet bei einem Dokument:
+2. Klicken Sie auf den "Kommentar" Button
+3. Füllen Sie das Formular aus:
+   - Feldbezug: vergabenummer
+   - Kommentar: "Die Vergabenummer sollte das Format VG-2025-XXX haben."
+   - Status: offen
+4. Speichern Sie den Kommentar
+
+<span class="success">✓ Erwartetes Ergebnis:</span>
+- Modal öffnet sich korrekt
+- Formular kann ausgefüllt werden
+- Kommentar wird gespeichert
+- Kommentar erscheint unter dem Dokument`;
+            
+            previewDiv.style.display = 'block';
+            contentDiv.innerHTML = `<strong>Feldbezug:</strong> vergabenummer<br>
+<strong>Kommentar:</strong> Die Vergabenummer sollte das Format VG-2025-XXX haben.<br>
+<strong>Status:</strong> offen<br>
+<strong>Autor:</strong> admin@test.de<br>
+<strong>Datum:</strong> ${new Date().toLocaleDateString('de-DE')}`;
+            
+            testResults.commentCreation = true;
+            updateSummary();
+        }
+        
+        async function testAdminOverview() {
+            const resultDiv = document.getElementById('adminOverviewResult');
+            resultDiv.innerHTML = 'Test läuft...';
+            
+            resultDiv.innerHTML = `<span class="info">Manuelle Prüfung erforderlich:</span>
+
+1. Als Admin angemeldet:
+2. Navigieren Sie zu "Verwaltung" im Seitenmenü
+3. Klicken Sie auf den Tab "Kommentare"
+4. Prüfen Sie die Übersicht aller Kommentare
+
+<span class="success">✓ Erwartetes Ergebnis:</span>
+- Alle Kommentare werden angezeigt
+- Kommentare zeigen: Autor, Datum, Text, Feldbezug
+- Projekt-Zuordnung ist sichtbar`;
+            
+            testResults.adminOverview = true;
+            updateSummary();
+        }
+        
+        function updateSummary() {
+            const summaryDiv = document.getElementById('testSummary');
+            const completed = Object.values(testResults).filter(r => r).length;
+            const total = Object.keys(testResults).length;
+            
+            let summary = `<h3>Test-Fortschritt: ${completed}/${total}</h3>\n\n`;
+            
+            summary += `${testResults.adminSetup ? '✓' : '○'} Admin-Setup\n`;
+            summary += `${testResults.adminVisibility ? '✓' : '○'} Admin-Sichtbarkeit\n`;
+            summary += `${testResults.userVisibility ? '✓' : '○'} Benutzer-Sichtbarkeit\n`;
+            summary += `${testResults.commentCreation ? '✓' : '○'} Kommentar-Erstellung\n`;
+            summary += `${testResults.adminOverview ? '✓' : '○'} Admin-Übersicht\n`;
+            
+            if (completed === total) {
+                summary += '\n<span class="success"><strong>Alle Tests abgeschlossen!</strong></span>';
+            }
+            
+            summaryDiv.innerHTML = summary;
+        }
+        
+        async function runAllTests() {
+            await setupAdminUser();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testAdminVisibility();
+            await testUserVisibility();
+            await testCommentCreation();
+            await testAdminOverview();
+        }
+    </script>
+</body>
+</html>

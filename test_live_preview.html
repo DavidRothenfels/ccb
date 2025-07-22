@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Preview Test - Vergabedokument-Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        .test-action {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .test-action:hover {
+            background: #0056b3;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .field-preview {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .placeholder-highlight {
+            background: yellow;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Live Preview Test - Vergabedokument-Generator</h1>
+        
+        <div class="test-section">
+            <h2>1. System Status</h2>
+            <div id="systemStatus" class="status">Prüfe System...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Live Preview Funktionen</h2>
+            <button class="test-action" onclick="testLivePreview()">Live Preview testen</button>
+            <button class="test-action" onclick="testFieldReplacement()">Platzhalter-Ersetzung testen</button>
+            <button class="test-action" onclick="testThresholdSwitch()">Schwellenwert-Wechsel testen</button>
+            <div id="livePreviewStatus" class="status" style="display:none"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Automatisierte Tests</h2>
+            <button class="test-action" onclick="runAllTests()">Alle Tests ausführen</button>
+            <div id="testResults" style="margin-top: 20px;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. Live System</h2>
+            <p>Das System wird hier eingebettet angezeigt:</p>
+            <iframe id="systemFrame" src="http://localhost:8091/" onload="onSystemLoad()"></iframe>
+        </div>
+    </div>
+
+    <script>
+        let systemReady = false;
+
+        // Check system status
+        async function checkSystemStatus() {
+            const statusDiv = document.getElementById('systemStatus');
+            
+            try {
+                const response = await fetch('http://localhost:8091/api/health');
+                const data = await response.json();
+                
+                if (data.code === 200) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✓ PocketBase läuft auf Port 8091';
+                    systemReady = true;
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '✗ PocketBase antwortet nicht korrekt';
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '✗ Kann keine Verbindung zu PocketBase herstellen: ' + error.message;
+            }
+        }
+
+        // Test live preview functionality
+        async function testLivePreview() {
+            const statusDiv = document.getElementById('livePreviewStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status warning';
+            statusDiv.innerHTML = 'Test läuft...<br><br>';
+
+            const tests = [
+                {
+                    name: 'Eingabefeld-Listener',
+                    test: () => {
+                        const frame = document.getElementById('systemFrame');
+                        const doc = frame.contentDocument || frame.contentWindow.document;
+                        const fields = doc.querySelectorAll('#dynamicFormFields input, #dynamicFormFields textarea');
+                        return fields.length > 0 ? 
+                            `✓ ${fields.length} Eingabefelder gefunden` : 
+                            '✗ Keine Eingabefelder gefunden';
+                    }
+                },
+                {
+                    name: 'Preview Container',
+                    test: () => {
+                        const frame = document.getElementById('systemFrame');
+                        const doc = frame.contentDocument || frame.contentWindow.document;
+                        const preview = doc.getElementById('documentsList');
+                        return preview ? 
+                            '✓ Preview Container vorhanden' : 
+                            '✗ Preview Container fehlt';
+                    }
+                },
+                {
+                    name: 'Live Update Funktion',
+                    test: () => {
+                        const frame = document.getElementById('systemFrame');
+                        const win = frame.contentWindow;
+                        return typeof win.updateLivePreview === 'function' ? 
+                            '✓ updateLivePreview Funktion verfügbar' : 
+                            '✗ updateLivePreview Funktion fehlt';
+                    }
+                }
+            ];
+
+            let allPassed = true;
+            let results = '';
+
+            for (const test of tests) {
+                try {
+                    const result = test.test();
+                    results += `<div class="field-preview">${test.name}: ${result}</div>`;
+                    if (result.includes('✗')) allPassed = false;
+                } catch (error) {
+                    results += `<div class="field-preview">${test.name}: ✗ Fehler: ${error.message}</div>`;
+                    allPassed = false;
+                }
+            }
+
+            statusDiv.className = allPassed ? 'status success' : 'status error';
+            statusDiv.innerHTML = results;
+        }
+
+        // Test field replacement
+        async function testFieldReplacement() {
+            const statusDiv = document.getElementById('livePreviewStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status warning';
+            statusDiv.innerHTML = 'Teste Platzhalter-Ersetzung...<br><br>';
+
+            try {
+                const frame = document.getElementById('systemFrame');
+                const win = frame.contentWindow;
+                const doc = frame.contentDocument || frame.contentWindow.document;
+
+                // Simulate filling form fields
+                const testData = {
+                    'vergabestelle_name': 'Testamt Berlin',
+                    'vergabenummer': 'TEST-2024-001',
+                    'geschaetzter_auftragswert': '50000',
+                    'angebotsfrist_datum': '2024-12-31'
+                };
+
+                let results = '<strong>Eingefüllte Testdaten:</strong><br>';
+                
+                for (const [field, value] of Object.entries(testData)) {
+                    const input = doc.querySelector(`[name="${field}"]`);
+                    if (input) {
+                        input.value = value;
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                        results += `<div class="field-preview">✓ ${field}: ${value}</div>`;
+                    } else {
+                        results += `<div class="field-preview">✗ Feld "${field}" nicht gefunden</div>`;
+                    }
+                }
+
+                // Trigger preview update
+                if (typeof win.updateLivePreview === 'function') {
+                    win.updateLivePreview();
+                    results += '<br><strong>Live Preview wurde aktualisiert</strong>';
+                    
+                    // Check if placeholders were replaced
+                    setTimeout(() => {
+                        const previewContent = doc.getElementById('documentsList').innerHTML;
+                        if (previewContent.includes('Testamt Berlin')) {
+                            results += '<div class="field-preview">✓ Platzhalter wurden ersetzt</div>';
+                            statusDiv.className = 'status success';
+                        } else {
+                            results += '<div class="field-preview">✗ Platzhalter wurden nicht ersetzt</div>';
+                            statusDiv.className = 'status error';
+                        }
+                        statusDiv.innerHTML = results;
+                    }, 1000);
+                }
+
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '✗ Fehler: ' + error.message;
+            }
+        }
+
+        // Test threshold switch
+        async function testThresholdSwitch() {
+            const statusDiv = document.getElementById('livePreviewStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status warning';
+            statusDiv.innerHTML = 'Teste Schwellenwert-Wechsel...<br><br>';
+
+            try {
+                const frame = document.getElementById('systemFrame');
+                const doc = frame.contentDocument || frame.contentWindow.document;
+
+                const thresholdSelect = doc.getElementById('thresholdType');
+                if (thresholdSelect) {
+                    let results = '';
+                    
+                    // Test unterschwellig
+                    thresholdSelect.value = 'unterschwellig';
+                    thresholdSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    results += '<div class="field-preview">✓ Auf "unterschwellig" gewechselt</div>';
+                    
+                    setTimeout(() => {
+                        const previewContent = doc.getElementById('documentsList').innerHTML;
+                        if (previewContent.includes('UVgO')) {
+                            results += '<div class="field-preview">✓ UVgO Templates werden angezeigt</div>';
+                        }
+                        
+                        // Test oberschwellig
+                        thresholdSelect.value = 'oberschwellig';
+                        thresholdSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        results += '<div class="field-preview">✓ Auf "oberschwellig" gewechselt</div>';
+                        
+                        setTimeout(() => {
+                            const previewContent2 = doc.getElementById('documentsList').innerHTML;
+                            if (previewContent2.includes('VgV')) {
+                                results += '<div class="field-preview">✓ VgV Templates werden angezeigt</div>';
+                                statusDiv.className = 'status success';
+                            } else {
+                                results += '<div class="field-preview">✗ Template-Wechsel funktioniert nicht</div>';
+                                statusDiv.className = 'status error';
+                            }
+                            statusDiv.innerHTML = results;
+                        }, 1000);
+                    }, 1000);
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = '✗ Schwellenwert-Auswahl nicht gefunden';
+                }
+
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '✗ Fehler: ' + error.message;
+            }
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<h3>Testergebnisse:</h3>';
+
+            const tests = [
+                { name: 'System Status', fn: checkSystemStatus },
+                { name: 'Live Preview', fn: testLivePreview },
+                { name: 'Platzhalter-Ersetzung', fn: testFieldReplacement },
+                { name: 'Schwellenwert-Wechsel', fn: testThresholdSwitch }
+            ];
+
+            for (const test of tests) {
+                resultsDiv.innerHTML += `<div class="field-preview"><strong>${test.name}:</strong> Test läuft...</div>`;
+                await test.fn();
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+
+            resultsDiv.innerHTML += '<div class="status success" style="margin-top: 20px;">✓ Alle Tests abgeschlossen</div>';
+        }
+
+        // On system load
+        function onSystemLoad() {
+            console.log('System iframe loaded');
+            checkSystemStatus();
+        }
+
+        // Initialize
+        checkSystemStatus();
+    </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Test - Citychallenge</title>
+</head>
+<body>
+    <h1>Citychallenge Frontend Test</h1>
+    
+    <h2>Test-Zugangsdaten:</h2>
+    <ul>
+        <li><strong>Admin:</strong> admin@citychallenge.berlin / citychallenge2025</li>
+        <li><strong>Standard User:</strong> user@citychallenge.berlin / citychallenge2025</li>
+    </ul>
+    
+    <h2>Anwendung öffnen:</h2>
+    <p><a href="http://localhost:8091/" target="_blank">➜ Citychallenge App öffnen</a></p>
+    
+    <h2>Admin Dashboard:</h2>
+    <p><a href="http://localhost:8091/_/" target="_blank">➜ PocketBase Admin öffnen</a></p>
+    
+    <h2>Test-Schritte:</h2>
+    <ol>
+        <li>Mit Admin-Account anmelden</li>
+        <li>Neues Projekt erstellen</li>
+        <li>Formulardaten ausfüllen</li>
+        <li>Projekt speichern</li>
+        <li>Generierte Dokumente prüfen</li>
+        <li>Kommentar hinzufügen (als Admin)</li>
+        <li>An Vergabeplattform senden testen</li>
+    </ol>
+    
+    <h2>API Endpoints:</h2>
+    <ul>
+        <li>Health: <a href="http://localhost:8091/api/health" target="_blank">http://localhost:8091/api/health</a></li>
+        <li>Collections: http://localhost:8091/api/collections (requires auth)</li>
+    </ul>
+    
+    <script>
+        // Quick test of API
+        fetch('http://localhost:8091/api/health')
+            .then(r => r.json())
+            .then(data => {
+                console.log('API Health:', data);
+                document.body.insertAdjacentHTML('beforeend', 
+                    '<p style="color: green;">✓ API ist erreichbar</p>'
+                );
+            })
+            .catch(err => {
+                console.error('API Error:', err);
+                document.body.insertAdjacentHTML('beforeend', 
+                    '<p style="color: red;">✗ API nicht erreichbar - Bitte PocketBase starten</p>'
+                );
+            });
+    </script>
+</body>
+</html>

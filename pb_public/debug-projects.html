@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Projects</title>
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+</head>
+<body>
+    <h1>Debug Projects Issue</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        const pb = new PocketBase('http://localhost:8091');
+        
+        function log(message) {
+            output.innerHTML += `<div>${message}</div>`;
+            console.log(message);
+        }
+        
+        async function debug() {
+            try {
+                // Login
+                const authData = await pb.collection('users').authWithPassword(
+                    'test@example.com',
+                    'testpassword123'
+                );
+                
+                log(`✅ Logged in as: ${authData.record.email}`);
+                log(`User ID: ${authData.record.id}`);
+                
+                // Check if user exists in database
+                const response = await fetch(`http://localhost:8091/api/collections/projects/records?filter=user='${authData.record.id}'`, {
+                    headers: {
+                        'Authorization': pb.authStore.token
+                    }
+                });
+                const data = await response.json();
+                log(`<br>API Response for user projects: ${data.totalItems} items`);
+                
+                // Try default getList
+                try {
+                    const projects = await pb.collection('projects').getList(1, 50);
+                    log(`<br>PocketBase SDK getList: ${projects.totalItems} projects`);
+                    projects.items.forEach(p => {
+                        log(`- ${p.name} (user: ${p.user})`);
+                    });
+                } catch (e) {
+                    log(`<br>❌ Error with getList: ${e.message}`);
+                }
+                
+                // Create test project
+                try {
+                    const newProject = await pb.collection('projects').create({
+                        name: 'Debug Test Project',
+                        description: 'Created via debug',
+                        user: authData.record.id,
+                        procurement_type: 'Dienst',
+                        threshold_type: 'unterschwellig',
+                        form_data: {},
+                        status: 'draft'
+                    });
+                    log(`<br>✅ Created project: ${newProject.name}`);
+                } catch (e) {
+                    log(`<br>❌ Error creating project: ${e.message}`);
+                }
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+            }
+        }
+        
+        debug();
+    </script>
+</body>
+</html>

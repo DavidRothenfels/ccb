@@ -1,0 +1,19 @@
+{
+  "template": "wirt-111-5-uvgo.docx",
+  "analyzedAt": "2025-07-21T18:13:46.976Z",
+  "sections": [],
+  "fieldCount": 1,
+  "fields": [
+    {
+      "key": "eingabefeld",
+      "label": "Eingabefeld",
+      "type": "text",
+      "section": "Allgemein",
+      "required": false,
+      "maxLength": 44,
+      "examples": [
+        "______________________"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Test Data</title>
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+</head>
+<body>
+    <h1>Create Test Data for CityChallenge</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        const pb = new PocketBase('http://localhost:8091');
+        
+        function log(message) {
+            output.innerHTML += `<div>${message}</div>`;
+            console.log(message);
+        }
+        
+        async function createTestData() {
+            try {
+                // Create test user
+                try {
+                    const user = await pb.collection('users').create({
+                        email: 'test@citychallenge.de',
+                        password: 'test12345',
+                        passwordConfirm: 'test12345',
+                        name: 'Test User',
+                        user_type: 'standard'
+                    });
+                    log(`✅ Created user: ${user.email}`);
+                    
+                    // Login as the new user
+                    const authData = await pb.collection('users').authWithPassword(
+                        'test@citychallenge.de',
+                        'test12345'
+                    );
+                    log(`✅ Logged in as: ${authData.record.email}`);
+                    
+                    // Create a test project
+                    const project = await pb.collection('projects').create({
+                        name: 'Testprojekt Vergabe 2025',
+                        description: 'Ein Beispielprojekt für die City Challenge',
+                        user: authData.record.id,
+                        procurement_type: 'Dienst',
+                        threshold_type: 'unterschwellig',
+                        form_data: {
+                            vergabestelle_name: 'Senatsverwaltung für Digitales',
+                            vergabestelle_anschrift: 'Klosterstraße 59, 10179 Berlin',
+                            vergabenummer: 'CC-2025-001'
+                        },
+                        status: 'draft'
+                    });
+                    log(`✅ Created project: ${project.name}`);
+                    
+                } catch (e) {
+                    if (e.message.includes('users_email_unique')) {
+                        log('ℹ️ User already exists, logging in...');
+                        const authData = await pb.collection('users').authWithPassword(
+                            'test@citychallenge.de',
+                            'test12345'
+                        );
+                        log(`✅ Logged in as: ${authData.record.email}`);
+                    } else {
+                        throw e;
+                    }
+                }
+                
+                // Create admin user
+                try {
+                    const admin = await pb.collection('users').create({
+                        email: 'admin@citychallenge.de',
+                        password: 'admin12345',
+                        passwordConfirm: 'admin12345',
+                        name: 'Admin User',
+                        user_type: 'admin'
+                    });
+                    log(`✅ Created admin: ${admin.email}`);
+                } catch (e) {
+                    if (e.message.includes('users_email_unique')) {
+                        log('ℹ️ Admin already exists');
+                    }
+                }
+                
+                log('<br><strong>Test credentials:</strong>');
+                log('User: test@citychallenge.de / test12345');
+                log('Admin: admin@citychallenge.de / admin12345');
+                log('<br><a href="/">Go to application</a>');
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+            }
+        }
+        
+        createTestData();
+    </script>
+</body>
+</html>

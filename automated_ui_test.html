@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatisierter UI Test - Vergabe-Tool</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .field-preview {
+            margin: 10px 0;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .field-preview h4 {
+            margin-top: 0;
+            color: #666;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        .iframe-container {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Automatisierter UI Test - Vergabe-Vorbereitungs-Tool</h1>
+        
+        <div class="test-section">
+            <h2>1. Verbindungstest</h2>
+            <button onclick="runAllTests()">🚀 Alle Tests ausführen</button>
+            <div id="connectionTest"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Template-Analyse</h2>
+            <div id="templateTest"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Formular-Generierung Test</h2>
+            <div id="formTest"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. UI-Komponenten Test</h2>
+            <div id="uiTest"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>5. Live UI Preview</h2>
+            <button onclick="openUI()">🖥️ UI im neuen Tab öffnen</button>
+            <p class="info">Hinweis: Die UI öffnet sich in einem neuen Tab. Melden Sie sich mit testuser@example.com / testpass123 an.</p>
+        </div>
+
+        <div class="summary" id="summary">
+            <h2>📊 Test-Zusammenfassung</h2>
+            <div id="summaryContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8091/api';
+        let authToken = '';
+        const testResults = {
+            connection: false,
+            templates: false,
+            formFields: false,
+            uiComponents: false
+        };
+
+        async function runAllTests() {
+            await testConnection();
+            await testTemplates();
+            await testFormGeneration();
+            await testUIComponents();
+            updateSummary();
+        }
+
+        async function testConnection() {
+            const container = document.getElementById('connectionTest');
+            container.innerHTML = '<div class="info">🔄 Teste Verbindung...</div>';
+            
+            try {
+                // Login
+                const loginResponse = await fetch(`${API_URL}/collections/users/auth-with-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        identity: 'testuser@example.com',
+                        password: 'testpass123'
+                    })
+                });
+                
+                if (loginResponse.ok) {
+                    const data = await loginResponse.json();
+                    authToken = data.token;
+                    container.innerHTML = '<div class="success">✅ Verbindung erfolgreich - User eingeloggt</div>';
+                    testResults.connection = true;
+                } else {
+                    container.innerHTML = '<div class="error">❌ Login fehlgeschlagen</div>';
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ Verbindungsfehler: ${error.message}</div>`;
+            }
+        }
+
+        async function testTemplates() {
+            const container = document.getElementById('templateTest');
+            if (!authToken) {
+                container.innerHTML = '<div class="error">❌ Nicht eingeloggt</div>';
+                return;
+            }
+            
+            container.innerHTML = '<div class="info">🔄 Lade Templates...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/collections/templates/records?filter=active%3Dtrue`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                const data = await response.json();
+                const uvgoTemplates = data.items.filter(t => t.category === 'UVgO' || t.category === 'VgV_UVgO');
+                
+                let html = '<div class="success">✅ Templates geladen</div>';
+                html += '<div class="field-preview">';
+                html += `<h4>Gefundene UVgO Templates: ${uvgoTemplates.length}</h4>`;
+                
+                uvgoTemplates.forEach(template => {
+                    const fieldCount = Object.keys(template.template_fields || {}).length;
+                    html += `<p><strong>${template.name}</strong> - ${fieldCount} Felder</p>`;
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+                testResults.templates = uvgoTemplates.length > 0;
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ Fehler: ${error.message}</div>`;
+            }
+        }
+
+        async function testFormGeneration() {
+            const container = document.getElementById('formTest');
+            if (!authToken) {
+                container.innerHTML = '<div class="error">❌ Nicht eingeloggt</div>';
+                return;
+            }
+            
+            container.innerHTML = '<div class="info">🔄 Prüfe Formularfelder...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/collections/templates/records?filter=${encodeURIComponent("name='UVgO - Unterschwellige Vergabe'")}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                const data = await response.json();
+                if (data.items.length > 0) {
+                    const template = data.items[0];
+                    const fields = template.template_fields || {};
+                    
+                    // Gruppiere Felder nach Typ
+                    const fieldsByType = {};
+                    Object.entries(fields).forEach(([key, field]) => {
+                        const type = field.type || 'text';
+                        if (!fieldsByType[type]) fieldsByType[type] = [];
+                        fieldsByType[type].push({ key, ...field });
+                    });
+                    
+                    let html = '<div class="success">✅ Formularfelder analysiert</div>';
+                    html += '<div class="field-preview">';
+                    html += '<h4>Feldtypen-Übersicht:</h4>';
+                    
+                    const expectedTypes = ['text', 'textarea', 'email', 'phone', 'date', 'datetime', 'currency', 'checkbox', 'select'];
+                    expectedTypes.forEach(type => {
+                        const count = fieldsByType[type]?.length || 0;
+                        const status = count > 0 ? '✅' : '❌';
+                        const cssClass = count > 0 ? 'success' : 'warning';
+                        html += `<div class="test-result ${cssClass}">${status} ${type}: ${count} Felder</div>`;
+                    });
+                    
+                    // Zeige Beispielfelder
+                    html += '<h4>Beispielfelder:</h4>';
+                    Object.entries(fieldsByType).forEach(([type, typeFields]) => {
+                        if (typeFields.length > 0) {
+                            html += `<p><strong>${type}:</strong> ${typeFields.slice(0, 2).map(f => f.label).join(', ')}</p>`;
+                        }
+                    });
+                    
+                    html += '</div>';
+                    container.innerHTML = html;
+                    
+                    // Prüfe ob alle wichtigen Feldtypen vorhanden sind
+                    testResults.formFields = ['text', 'date', 'currency', 'checkbox', 'select'].every(type => fieldsByType[type]?.length > 0);
+                } else {
+                    container.innerHTML = '<div class="error">❌ Template nicht gefunden</div>';
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ Fehler: ${error.message}</div>`;
+            }
+        }
+
+        async function testUIComponents() {
+            const container = document.getElementById('uiTest');
+            container.innerHTML = '<div class="info">🔄 Prüfe UI-Komponenten...</div>';
+            
+            try {
+                // Lade die Hauptseite
+                const response = await fetch('http://localhost:8091/');
+                const html = await response.text();
+                
+                // Prüfe wichtige UI-Elemente
+                const checks = {
+                    'Login-Formular': html.includes('loginForm'),
+                    'Split-Panel Layout': html.includes('split-panel'),
+                    'Scrollbare Bereiche': html.includes('overflow-y: auto') || html.includes('panel-content'),
+                    'Dynamische Felder Container': html.includes('dynamicFormFields'),
+                    'Dokumentenliste': html.includes('documentsList'),
+                    'Responsive Design': html.includes('viewport')
+                };
+                
+                let resultHtml = '<div class="success">✅ UI-Komponenten geprüft</div>';
+                resultHtml += '<div class="field-preview">';
+                
+                let allPassed = true;
+                Object.entries(checks).forEach(([component, exists]) => {
+                    const status = exists ? '✅' : '❌';
+                    const cssClass = exists ? 'success' : 'error';
+                    resultHtml += `<div class="test-result ${cssClass}">${status} ${component}</div>`;
+                    if (!exists) allPassed = false;
+                });
+                
+                resultHtml += '</div>';
+                container.innerHTML = resultHtml;
+                testResults.uiComponents = allPassed;
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ Fehler: ${error.message}</div>`;
+            }
+        }
+
+        function updateSummary() {
+            const container = document.getElementById('summaryContent');
+            const totalTests = Object.keys(testResults).length;
+            const passedTests = Object.values(testResults).filter(r => r).length;
+            
+            let html = `<h3>Ergebnis: ${passedTests}/${totalTests} Tests bestanden</h3>`;
+            html += '<ul>';
+            
+            Object.entries(testResults).forEach(([test, passed]) => {
+                const status = passed ? '✅ Bestanden' : '❌ Fehlgeschlagen';
+                const testNames = {
+                    connection: 'Verbindung & Login',
+                    templates: 'Template-Verfügbarkeit',
+                    formFields: 'Alle Feldtypen vorhanden',
+                    uiComponents: 'UI-Komponenten'
+                };
+                html += `<li><strong>${testNames[test]}:</strong> ${status}</li>`;
+            });
+            
+            html += '</ul>';
+            
+            if (passedTests === totalTests) {
+                html += '<div class="success" style="margin-top: 20px;">🎉 Alle Tests erfolgreich! Das System ist bereit für die Formular-Generierung.</div>';
+            } else {
+                html += '<div class="warning" style="margin-top: 20px;">⚠️ Einige Tests sind fehlgeschlagen. Bitte prüfen Sie die Details oben.</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function openUI() {
+            window.open('http://localhost:8091/', '_blank');
+        }
+
+        // Auto-run tests on load
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>

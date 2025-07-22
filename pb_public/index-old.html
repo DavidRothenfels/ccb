@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vergabe-Vorbereitungs-Tool - Berlin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen active">
+            <div class="login-container">
+                <div class="login-box">
+                    <h1>Vergabe-Vorbereitungs-Tool</h1>
+                    <p class="subtitle">Digitale Unterstützung für Vergabeverfahren</p>
+                    
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="email">E-Mail</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Passwort</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Anmelden</button>
+                        </div>
+                    </form>
+                    
+                    <div class="login-footer">
+                        <p>City Challenge Berlin 2025</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Screen -->
+        <div id="dashboardScreen" class="screen">
+            <header class="main-header">
+                <div class="header-content">
+                    <h1>Vergabe-Vorbereitungs-Tool</h1>
+                    <div class="user-info">
+                        <span id="userEmail"></span>
+                        <button id="logoutBtn" class="btn btn-small">Abmelden</button>
+                    </div>
+                </div>
+            </header>
+            
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#" data-section="projects" class="active">Meine Projekte</a></li>
+                    <li><a href="#" data-section="templates">Vorlagen</a></li>
+                    <li id="adminNavItem" style="display:none;"><a href="#" data-section="admin">Administration</a></li>
+                </ul>
+            </nav>
+            
+            <main class="main-content">
+                <!-- Projects Section -->
+                <section id="projectsSection" class="section active">
+                    <div class="section-header">
+                        <h2>Meine Vergabeprojekte</h2>
+                        <button id="newProjectBtn" class="btn btn-primary">Neues Projekt</button>
+                    </div>
+                    <div id="projectsList" class="projects-grid">
+                        <!-- Projects will be loaded here -->
+                    </div>
+                </section>
+                
+                <!-- Templates Section -->
+                <section id="templatesSection" class="section">
+                    <div class="section-header">
+                        <h2>Verfügbare Vorlagen</h2>
+                    </div>
+                    <div id="templatesList" class="templates-list">
+                        <!-- Templates will be loaded here -->
+                    </div>
+                </section>
+                
+                <!-- Admin Section -->
+                <section id="adminSection" class="section">
+                    <div class="section-header">
+                        <h2>Administration</h2>
+                    </div>
+                    <div class="admin-tabs">
+                        <button class="tab-btn active" data-tab="comments">Kommentare</button>
+                        <button class="tab-btn" data-tab="api">API Konfiguration</button>
+                    </div>
+                    <div id="adminContent">
+                        <!-- Admin content will be loaded here -->
+                    </div>
+                </section>
+            </main>
+        </div>
+        
+        <!-- Project Edit Screen -->
+        <div id="projectEditScreen" class="screen">
+            <header class="main-header">
+                <div class="header-content">
+                    <h1>Projekt bearbeiten</h1>
+                    <button id="backToDashboard" class="btn btn-secondary">Zurück zur Übersicht</button>
+                </div>
+            </header>
+            
+            <div class="project-edit-container">
+                <div class="edit-panel">
+                    <h2>Projektdaten</h2>
+                    <form id="projectForm">
+                        <div class="form-section">
+                            <h3>Grunddaten</h3>
+                            <div class="form-group">
+                                <label for="projectName">Projektname</label>
+                                <input type="text" id="projectName" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="projectDescription">Beschreibung</label>
+                                <textarea id="projectDescription" name="description" rows="3"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="procurementType">Vergabeart</label>
+                                    <select id="procurementType" name="procurement_type" required>
+                                        <option value="">Bitte wählen</option>
+                                        <option value="Liefer">Lieferleistung</option>
+                                        <option value="Dienst">Dienstleistung</option>
+                                        <option value="Bau">Bauleistung</option>
+                                        <option value="Freiberuflich">Freiberufliche Leistung</option>
+                                        <option value="Sonstige">Sonstige</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="thresholdType">Schwellenwert</label>
+                                    <select id="thresholdType" name="threshold_type" required>
+                                        <option value="">Bitte wählen</option>
+                                        <option value="unterschwellig">Unterschwellig</option>
+                                        <option value="oberschwellig">Oberschwellig</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3>Formulardaten</h3>
+                            <div id="dynamicFormFields">
+                                <!-- Dynamic form fields will be loaded here based on templates -->
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Projekt speichern</button>
+                            <button type="button" id="exportToApi" class="btn btn-secondary">An Vergabeplattform senden</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="preview-panel">
+                    <h2>Dokumentenvorschau</h2>
+                    <div id="documentsList">
+                        <!-- Generated documents will be shown here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comment Modal -->
+    <div id="commentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Kommentar hinzufügen</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="commentForm">
+                    <div class="form-group">
+                        <label for="commentField">Feldbezug</label>
+                        <input type="text" id="commentField" name="field_reference">
+                    </div>
+                    <div class="form-group">
+                        <label for="commentText">Kommentar</label>
+                        <textarea id="commentText" name="comment_text" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="commentStatus">Status</label>
+                        <select id="commentStatus" name="status">
+                            <option value="open">Offen</option>
+                            <option value="resolved">Gelöst</option>
+                            <option value="info">Info</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Kommentar speichern</button>
+                        <button type="button" class="btn btn-secondary close-btn">Abbrechen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

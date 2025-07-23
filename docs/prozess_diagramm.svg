@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="600" y="40" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle">
+    Vergabe-Vorbereitungs-Tool: Arbeitsprozess
+  </text>
+  
+  <!-- Process Flow -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+  
+  <!-- Step 1: Login -->
+  <rect x="50" y="100" width="200" height="80" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="150" y="130" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle">1. Anmeldung</text>
+  <text x="150" y="150" font-family="Arial" font-size="12" text-anchor="middle">Browser öffnen</text>
+  <text x="150" y="165" font-family="Arial" font-size="12" text-anchor="middle">Mit AD-Kennung</text>
+  
+  <!-- Arrow 1 -->
+  <line x1="250" y1="140" x2="320" y2="140" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Step 2: Project Selection -->
+  <rect x="320" y="100" width="200" height="80" rx="10" fill="#e8f5e9" stroke="#4caf50" stroke-width="2"/>
+  <text x="420" y="130" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle">2. Projektauswahl</text>
+  <text x="420" y="150" font-family="Arial" font-size="12" text-anchor="middle">Neues Vergabeverfahren</text>
+  <text x="420" y="165" font-family="Arial" font-size="12" text-anchor="middle">oder bestehendes öffnen</text>
+  
+  <!-- Arrow 2 -->
+  <line x1="520" y1="140" x2="590" y2="140" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Step 3: Data Entry -->
+  <rect x="590" y="100" width="200" height="80" rx="10" fill="#fff3e0" stroke="#ff9800" stroke-width="2"/>
+  <text x="690" y="130" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle">3. Dateneingabe</text>
+  <text x="690" y="150" font-family="Arial" font-size="12" text-anchor="middle">Zentrale Eingabemaske</text>
+  <text x="690" y="165" font-family="Arial" font-size="12" text-anchor="middle">Alle Felder einmal</text>
+  
+  <!-- Arrow 3 -->
+  <line x1="790" y1="140" x2="860" y2="140" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Step 4: Live Preview -->
+  <rect x="860" y="100" width="200" height="80" rx="10" fill="#fce4ec" stroke="#e91e63" stroke-width="2"/>
+  <text x="960" y="130" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle">4. Live-Vorschau</text>
+  <text x="960" y="150" font-family="Arial" font-size="12" text-anchor="middle">Echtzeit-Generierung</text>
+  <text x="960" y="165" font-family="Arial" font-size="12" text-anchor="middle">aller Dokumente</text>
+  
+  <!-- Data Flow Section -->
+  <text x="600" y="250" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle">
+    Datenfluss und Dokumentengenerierung
+  </text>
+  
+  <!-- Central Database -->
+  <rect x="450" y="300" width="300" height="100" rx="15" fill="#f5f5f5" stroke="#616161" stroke-width="2"/>
+  <text x="600" y="340" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle">Zentrale Datenbank</text>
+  <text x="600" y="360" font-family="Arial" font-size="12" text-anchor="middle">Single Source of Truth</text>
+  <text x="600" y="380" font-family="Arial" font-size="12" text-anchor="middle">Alle Projektdaten an einem Ort</text>
+  
+  <!-- Generated Documents -->
+  <g id="docs">
+    <!-- Doc 1 -->
+    <rect x="100" y="450" width="180" height="60" rx="5" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+    <text x="190" y="485" font-family="Arial" font-size="12" text-anchor="middle">Vergabeakte</text>
+    
+    <!-- Doc 2 -->
+    <rect x="320" y="450" width="180" height="60" rx="5" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+    <text x="410" y="485" font-family="Arial" font-size="12" text-anchor="middle">Bekanntmachung</text>
+    
+    <!-- Doc 3 -->
+    <rect x="540" y="450" width="180" height="60" rx="5" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+    <text x="630" y="485" font-family="Arial" font-size="12" text-anchor="middle">Leistungsbeschreibung</text>
+    
+    <!-- Doc 4 -->
+    <rect x="760" y="450" width="180" height="60" rx="5" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+    <text x="850" y="485" font-family="Arial" font-size="12" text-anchor="middle">Bewertungsmatrix</text>
+  </g>
+  
+  <!-- Arrows from Database to Documents -->
+  <line x1="500" y1="400" x2="190" y2="450" stroke="#666" stroke-width="1.5" stroke-dasharray="5,5"/>
+  <line x1="550" y1="400" x2="410" y2="450" stroke="#666" stroke-width="1.5" stroke-dasharray="5,5"/>
+  <line x1="650" y1="400" x2="630" y2="450" stroke="#666" stroke-width="1.5" stroke-dasharray="5,5"/>
+  <line x1="700" y1="400" x2="850" y2="450" stroke="#666" stroke-width="1.5" stroke-dasharray="5,5"/>
+  
+  <!-- Export Options -->
+  <text x="600" y="570" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle">
+    Export und Weiterverarbeitung
+  </text>
+  
+  <!-- Export Formats -->
+  <rect x="200" y="600" width="120" height="50" rx="5" fill="#e8eaf6" stroke="#3f51b5" stroke-width="2"/>
+  <text x="260" y="630" font-family="Arial" font-size="12" text-anchor="middle">DOCX</text>
+  
+  <rect x="360" y="600" width="120" height="50" rx="5" fill="#e8eaf6" stroke="#3f51b5" stroke-width="2"/>
+  <text x="420" y="630" font-family="Arial" font-size="12" text-anchor="middle">PDF</text>
+  
+  <rect x="520" y="600" width="120" height="50" rx="5" fill="#e8eaf6" stroke="#3f51b5" stroke-width="2"/>
+  <text x="580" y="630" font-family="Arial" font-size="12" text-anchor="middle">API/JSON</text>
+  
+  <rect x="680" y="600" width="120" height="50" rx="5" fill="#e8eaf6" stroke="#3f51b5" stroke-width="2"/>
+  <text x="740" y="630" font-family="Arial" font-size="12" text-anchor="middle">E-Vergabe</text>
+  
+  <!-- Benefits Box -->
+  <rect x="900" y="300" width="250" height="150" rx="10" fill="#f0f4c3" stroke="#827717" stroke-width="2"/>
+  <text x="1025" y="330" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle">Vorteile</text>
+  <text x="920" y="355" font-family="Arial" font-size="12">✓ 70% Zeitersparnis</text>
+  <text x="920" y="375" font-family="Arial" font-size="12">✓ Keine Tippfehler</text>
+  <text x="920" y="395" font-family="Arial" font-size="12">✓ Konsistente Daten</text>
+  <text x="920" y="415" font-family="Arial" font-size="12">✓ Versionskontrolle</text>
+  <text x="920" y="435" font-family="Arial" font-size="12">✓ Parallelbearbeitung</text>
+  
+  <!-- Time Indicator -->
+  <text x="600" y="720" font-family="Arial" font-size="14" font-style="italic" text-anchor="middle">
+    Gesamtdauer: Von der Anmeldung bis zum fertigen Dokumentenpaket in unter 30 Minuten
+  </text>
+</svg>

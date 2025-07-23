@@ -82,6 +82,8 @@ function setupEventListeners() {
     // Project form
     document.getElementById('projectForm').addEventListener('submit', handleProjectSave);
     
+    // Template selector event listener is added below in the event listeners section
+    
     // Export to API
     const exportBtn = document.getElementById('exportToApi');
     if (exportBtn) {
@@ -184,17 +186,21 @@ function showProjectEdit(projectId = null) {
     } else {
         // New project
         state.currentProject = null;
-        state.selectedTemplates.clear();
-        state.formData = {};
         document.getElementById('projectForm').reset();
         
-        // Reset template selection and form fields
-        clearTemplateSelection();
-        clearFormFields();
-        clearDocumentPreview();
+        // Clear template dropdown
+        document.getElementById('templateSelector').innerHTML = '<option value="">Vorlage wählen...</option>';
         
-        // Update project summary
-        updateProjectSummary();
+        // Clear form fields and documents
+        document.getElementById('dynamicFormFields').innerHTML = '<div class="empty-state"><p>Bitte erst ein Projekt über die Projektübersicht erstellen.</p></div>';
+        document.getElementById('documentsList').innerHTML = `
+            <div class="empty-state">
+                <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1;"></i>
+                <h3>Kein Projekt geladen</h3>
+                <p>Bitte öffnen Sie ein Projekt aus der Übersicht.</p>
+            </div>
+        `;
+        feather.replace();
     }
 }
 
@@ -356,7 +362,12 @@ function renderProjects() {
                     <i data-feather="folder" style="width: 20px; height: 20px;"></i>
                     ${project.name}
                 </h3>
-                <span class="status ${project.status || 'draft'}">${getStatusLabel(project.status || 'draft')}</span>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="status ${project.status || 'draft'}">${getStatusLabel(project.status || 'draft')}</span>
+                    <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); openProjectEditModal('${project.id}')" title="Projektdaten bearbeiten">
+                        <i data-feather="edit-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
             </div>
             <p style="color: var(--gray-600); margin-bottom: 1rem;">${project.description || 'Keine Beschreibung'}</p>
             <div style="display: flex; gap: 1rem; margin-top: 1rem; font-size: 0.875rem; color: var(--gray);">
@@ -366,6 +377,14 @@ function renderProjects() {
                 <span>•</span>
                 <span><i data-feather="calendar" style="width: 14px; height: 14px; vertical-align: middle;"></i> ${new Date(project.created).toLocaleDateString('de-DE')}</span>
             </div>
+            ${state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin') ? `
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); deleteProject('${project.id}')" style="width: 100%;">
+                        <i data-feather="trash-2"></i>
+                        <span>Projekt löschen</span>
+                    </button>
+                </div>
+            ` : ''}
             <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to right, var(--primary), var(--primary-dark)); height: 3px; transform: scaleX(0); transition: transform 0.2s ease;"></div>
         </div>
     `).join('');
@@ -442,31 +461,32 @@ async function loadProject(projectId) {
         const project = await pb.collection('projects').getOne(projectId);
         state.currentProject = project;
         
-        // Load selected templates from project data
-        if (project.selected_templates) {
-            state.selectedTemplates = new Set(project.selected_templates);
-        } else {
-            state.selectedTemplates.clear();
+        // Populate template dropdown based on threshold
+        populateTemplateSelector();
+        
+        // If project has a saved selected template, select it
+        if (project.selected_template_id) {
+            document.getElementById('templateSelector').value = project.selected_template_id;
+            state.selectedTemplateId = project.selected_template_id;
         }
         
-        // Load form data
-        state.formData = project.form_data || {};
+        // Load dynamic fields
+        loadDynamicFields(project.form_data || {});
         
-        // Update state.formData with project data for the summary
-        state.formData.projectName = project.name;
-        state.formData.projectDescription = project.description || '';
-        state.formData.procurementType = project.procurement_type || '';
-        state.formData.thresholdType = project.threshold_type;
-        
-        // Update project summary display
-        updateProjectSummary();
-        
-        // Update template selection UI
-        updateTemplateCheckboxes();
-        
-        // Load form fields and documents
-        loadFormFieldsFromSelectedTemplates();
-        updateDocumentPreview();
+        // Load documents or show preview
+        if (state.currentProject) {
+            const docs = await pb.collection('documents').getList(1, 50, {
+                filter: `project = "${projectId}"`
+            });
+            
+            if (docs.items.length > 0) {
+                state.documents = docs.items;
+                renderDocuments();
+            } else {
+                // Show live preview
+                updateLivePreview();
+            }
+        }
         
     } catch (error) {
         console.error('Error loading project:', error);
@@ -495,14 +515,14 @@ async function handleProjectSave(e) {
     }
     
     const projectData = {
-        name: formData.get('name'),
-        description: formData.get('description'),
-        procurement_type: formData.get('procurement_type'),
-        threshold_type: formData.get('threshold_type'),
         form_data: dynamicData,
-        status: 'draft',
-        user: state.currentUser.id
+        status: state.currentProject?.status || 'draft'
     };
+    
+    // Only include user for new projects
+    if (!state.currentProject) {
+        projectData.user = state.currentUser.id;
+    }
     
     try {
         if (state.currentProject) {
@@ -582,16 +602,16 @@ function populateTemplateSelector() {
     // Clear existing options
     selector.innerHTML = '<option value="">Bitte wählen Sie eine Vorlage...</option>';
     
-    // Get applicable templates based on threshold type
-    const thresholdType = document.getElementById('thresholdType')?.value;
+    // Get applicable templates based on project's threshold type
+    const thresholdType = state.currentProject?.threshold_type;
     
-    // If no threshold type selected, show instruction
+    // If no threshold type in project, show instruction
     if (!thresholdType) {
         selector.disabled = true;
-        selector.innerHTML = '<option value="">Bitte zuerst Schwellenwert wählen</option>';
+        selector.innerHTML = '<option value="">Kein Schwellenwert im Projekt definiert</option>';
         // Clear fields and documents
-        document.getElementById('dynamicFormFields').innerHTML = '<div class="empty-state"><p>Bitte wählen Sie zuerst einen Schwellenwert.</p></div>';
-        document.getElementById('documentsList').innerHTML = '<div class="empty-state"><p>Bitte wählen Sie zuerst einen Schwellenwert und eine Vorlage.</p></div>';
+        document.getElementById('dynamicFormFields').innerHTML = '<div class="empty-state"><p>Kein Schwellenwert im Projekt definiert.</p></div>';
+        document.getElementById('documentsList').innerHTML = '<div class="empty-state"><p>Kein Schwellenwert im Projekt definiert.</p></div>';
         return;
     }
     
@@ -655,34 +675,59 @@ function handleTemplateChange() {
 
 // Removed handleThresholdChange - no longer needed
 
+// Populate template dropdown based on threshold
 // Dynamic Form Fields
+function handleThresholdChange() {
+    // Update template selector based on new threshold
+    populateTemplateSelector();
+    
+    // Reload form fields
+    const savedData = state.currentProject?.form_data || {};
+    loadDynamicFields(savedData);
+}
+
 function loadDynamicFields(savedData = {}) {
     const container = document.getElementById('dynamicFormFields');
     
-    // If no template is selected, show empty state
-    if (!state.selectedTemplateId) {
-        container.innerHTML = '<div class="empty-state"><p>Bitte wählen Sie eine Vorlage aus.</p></div>';
+    // Get all applicable templates based on threshold
+    const thresholdType = state.currentProject?.threshold_type;
+    if (!thresholdType) {
+        container.innerHTML = '<div class="empty-state"><p>Kein Schwellenwert im Projekt definiert.</p></div>';
         return;
     }
     
-    // Get the selected template
-    const selectedTemplate = state.templates.find(t => t.id === state.selectedTemplateId);
-    if (!selectedTemplate) {
-        container.innerHTML = '<div class="empty-state"><p>Vorlage nicht gefunden.</p></div>';
+    // Filter templates based on threshold
+    const applicableTemplates = state.templates.filter(template => {
+        if (thresholdType === 'oberschwellig') {
+            return ['VgV', 'VgV_UVgO', 'SektVO'].includes(template.category);
+        } else {
+            return ['UVgO', 'VgV_UVgO'].includes(template.category);
+        }
+    });
+    
+    if (applicableTemplates.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>Keine Vorlagen für diesen Schwellenwert verfügbar.</p></div>';
         return;
     }
     
-    // Get fields from selected template only
+    // Collect ALL fields from ALL applicable templates
     const allFields = {};
     const fieldGroups = {};
     
-    Object.entries(selectedTemplate.template_fields).forEach(([key, field]) => {
-        allFields[key] = field;
-        const section = field.section || 'general';
-        if (!fieldGroups[section]) {
-            fieldGroups[section] = {};
+    applicableTemplates.forEach(template => {
+        if (template.template_fields) {
+            Object.entries(template.template_fields).forEach(([key, field]) => {
+                // Avoid duplicating fields with same key
+                if (!allFields[key]) {
+                    allFields[key] = field;
+                    const section = field.section || 'general';
+                    if (!fieldGroups[section]) {
+                        fieldGroups[section] = {};
+                    }
+                    fieldGroups[section][key] = field;
+                }
+            });
         }
-        fieldGroups[section][key] = field;
     });
     
     // Render fields by section
@@ -722,10 +767,12 @@ function loadDynamicFields(savedData = {}) {
     container.innerHTML = Object.entries(orderedSections).map(([section, fields]) => `
         <div class="form-section">
             <h4 class="form-section-title">${sectionTitles[section] || section}</h4>
-            ${Object.entries(fields).map(([key, field]) => {
-                const value = savedData[key] || field.default || '';
-                return renderFormField(key, field, value);
-            }).join('')}
+            <div class="form-fields-grid">
+                ${Object.entries(fields).map(([key, field]) => {
+                    const value = savedData[key] || field.default || '';
+                    return renderFormField(key, field, value);
+                }).join('')}
+            </div>
         </div>
     `).join('');
     
@@ -739,9 +786,9 @@ function renderFormField(name, field, value = '') {
     switch (field.type) {
         case 'textarea':
             return `
-                <div class="form-group">
+                <div class="form-group full-width">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
-                    <textarea id="${name}" name="${name}" rows="4" ${required} 
+                    <textarea id="${name}" name="${name}" rows="3" ${required} 
                         ${field.maxLength ? `maxlength="${field.maxLength}"` : ''}
                         ${field.placeholder ? `placeholder="${field.placeholder}"` : ''}>${value}</textarea>
                 </div>
@@ -910,64 +957,229 @@ async function loadProjectDocuments(projectId) {
 
 function renderDocuments() {
     const container = document.getElementById('documentsList');
+    const selectedTemplateId = document.getElementById('templateSelector').value;
     
-    // If no template is selected, show empty state
-    if (!state.selectedTemplateId) {
-        container.innerHTML = '<div class="empty-state"><p>Bitte wählen Sie eine Vorlage aus.</p></div>';
+    if (!selectedTemplateId) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1;"></i>
+                <h3>Vorlage wählen</h3>
+                <p>Bitte wählen Sie eine Vorlage aus dem Dropdown oben aus.</p>
+            </div>
+        `;
+        feather.replace();
         return;
     }
     
-    // Find the document for the selected template
-    const selectedDoc = state.documents.find(doc => 
-        doc.expand?.template?.id === state.selectedTemplateId
-    );
-    
-    if (!selectedDoc) {
-        // If no document exists for this template, show preview
-        renderTemplatePreview();
-        return;
-    }
-    
-    // Render only the selected document
-    const template = selectedDoc.expand?.template;
-    const content = selectedDoc.filled_content;
-    const formData = content.filled_data || {};
-    
-    container.innerHTML = `
-        <div class="card" style="margin-bottom: 2rem;">
-            <div class="card-header">
-                <h3 class="card-title">${template?.name || 'Dokument'}</h3>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn btn-small btn-secondary" onclick="downloadDocumentAsDocx('${selectedDoc.id}')">
-                        <i data-feather="download"></i>
-                        <span>DOCX</span>
-                    </button>
-                    <button class="btn btn-small btn-secondary" onclick="copyDocument('${selectedDoc.id}')">
-                        <i data-feather="copy"></i>
-                        <span>Kopieren</span>
-                    </button>
-                    ${state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin') ? `
-                        <button class="btn btn-small btn-primary" onclick="openCommentModal('${selectedDoc.id}')">
-                            <i data-feather="message-circle"></i>
-                            <span>Kommentar</span>
-                        </button>
-                    ` : ''}
+    // Check if we have saved documents for this template
+    if (state.documents && state.documents.length > 0) {
+        const selectedDoc = state.documents.find(doc => 
+            doc.expand?.template?.id === selectedTemplateId
+        );
+        
+        if (selectedDoc) {
+            // Render saved document
+            const template = selectedDoc.expand?.template;
+            const content = selectedDoc.filled_content;
+            const formData = content.filled_data || {};
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">${template?.name || 'Dokument'}</h3>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-small btn-secondary" onclick="downloadDocumentAsDocx('${selectedDoc.id}')">
+                                <i data-feather="download"></i>
+                                <span>DOCX</span>
+                            </button>
+                            <button class="btn btn-small btn-secondary" onclick="copyDocument('${selectedDoc.id}')">
+                                <i data-feather="copy"></i>
+                                <span>Kopieren</span>
+                            </button>
+                            ${state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin') ? `
+                                <button class="btn btn-small btn-primary" onclick="openCommentModal('${selectedDoc.id}')">
+                                    <i data-feather="message-circle"></i>
+                                    <span>Kommentar</span>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="document-preview" id="doc-${selectedDoc.id}">
+                        ${renderDocumentContent(template, content, formData)}
+                    </div>
+                    <div id="comments-${selectedDoc.id}" style="margin-top: 1rem;">
+                        <!-- Comments will be loaded here -->
+                    </div>
                 </div>
+            `;
+            
+            // Load comments for this document
+            loadDocumentComments(selectedDoc.id);
+            
+            // Re-initialize Feather icons
+            setTimeout(() => feather.replace(), 100);
+        } else {
+            // Show preview for selected template
+            showLiveTemplatePreview();
+        }
+    } else {
+        // Show live preview
+        showLiveTemplatePreview();
+    }
+}
+
+function showLiveTemplatePreview() {
+    const container = document.getElementById('documentsList');
+    const selectedTemplateId = document.getElementById('templateSelector').value;
+    
+    if (!selectedTemplateId) {
+        return;
+    }
+    
+    // Get selected template
+    const selectedTemplate = state.templates.find(t => t.id === selectedTemplateId);
+    if (!selectedTemplate) {
+        container.innerHTML = '<div class="empty-state"><p>Vorlage nicht gefunden.</p></div>';
+        return;
+    }
+    
+    const formData = collectFormData();
+    
+    // Render preview for selected template
+    container.innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">${selectedTemplate.name}</h3>
+                <span class="badge badge-processing">Vorschau</span>
             </div>
-            <div class="document-preview" id="doc-${selectedDoc.id}">
-                ${renderDocumentContent(template, content, formData)}
-            </div>
-            <div id="comments-${selectedDoc.id}" style="margin-top: 1rem;">
-                <!-- Comments will be loaded here -->
+            <div class="document-preview" style="max-height: 600px; overflow-y: auto;">
+                ${renderTemplateContent(selectedTemplate, formData)}
             </div>
         </div>
     `;
     
-    // Re-initialize Feather icons for the newly added content
-    setTimeout(() => feather.replace(), 100);
+    feather.replace();
+}
+
+function renderTemplateContent(template, formData) {
+    if (!template.template_content) {
+        return '<p style="padding: 1rem;">Keine Vorschau verfügbar</p>';
+    }
     
-    // Load comments for this document
-    loadDocumentComments(selectedDoc.id);
+    // Check if template_content is a string or object
+    let content = '';
+    if (typeof template.template_content === 'string') {
+        content = template.template_content;
+    } else if (typeof template.template_content === 'object' && template.template_content.sections) {
+        // Render structured content
+        return renderStructuredContent(template, formData);
+    } else {
+        return '<p style="padding: 1rem;">Ungültiges Template-Format</p>';
+    }
+    
+    // Replace placeholders with form data
+    Object.entries(formData).forEach(([key, value]) => {
+        const regex = new RegExp(`{{${key}}}`, 'g');
+        content = content.replace(regex, value || `[${key}]`);
+    });
+    
+    // Convert to HTML
+    content = content.replace(/\n/g, '<br>');
+    
+    return `<div style="padding: 1.5rem;">${content}</div>`;
+}
+
+function renderStructuredContent(template, formData) {
+    const content = template.template_content;
+    if (!content || !content.sections) {
+        return '<p style="padding: 1rem;">Keine strukturierten Inhalte verfügbar</p>';
+    }
+    
+    let html = '<div class="document-preview" style="padding: 2rem; background: white; font-family: Arial, sans-serif;">';
+    
+    content.sections.forEach(section => {
+        switch (section.type) {
+            case 'title':
+                html += `<h1 style="text-align: center; margin: 2rem 0; font-size: 1.5rem;">${section.content}</h1>`;
+                break;
+                
+            case 'header':
+                html += `<h2 style="margin: 1.5rem 0 0.5rem 0; font-size: 1.2rem; color: #333;">${section.content}</h2>`;
+                break;
+                
+            case 'letterhead':
+            case 'reference':
+                if (section.fields && section.fields.length > 0) {
+                    html += '<div style="margin: 1rem 0;">';
+                    if (section.title) {
+                        html += `<h3 style="margin-bottom: 0.5rem; font-size: 1rem;">${section.title}</h3>`;
+                    }
+                    section.fields.forEach(fieldKey => {
+                        const field = template.template_fields?.[fieldKey];
+                        const value = formData[fieldKey] || '';
+                        if (field) {
+                            html += `<div style="margin: 0.25rem 0;"><strong>${field.label}:</strong> ${value || '[Bitte ausfüllen]'}</div>`;
+                        }
+                    });
+                    html += '</div>';
+                }
+                break;
+                
+            case 'paragraph':
+                if (section.fields && section.fields.length > 0) {
+                    section.fields.forEach(fieldKey => {
+                        const value = formData[fieldKey] || '[Bitte ausfüllen]';
+                        html += `<p style="margin: 1rem 0; line-height: 1.6;">${value}</p>`;
+                    });
+                }
+                break;
+                
+            case 'deadlines':
+                if (section.fields && section.fields.length > 0) {
+                    html += '<div style="margin: 1rem 0;">';
+                    if (section.title) {
+                        html += `<h3 style="margin-bottom: 0.5rem; font-size: 1rem;">${section.title}</h3>`;
+                    }
+                    section.fields.forEach(fieldKey => {
+                        const field = template.template_fields?.[fieldKey];
+                        const value = formData[fieldKey] || '';
+                        if (field) {
+                            const displayValue = fieldKey.includes('datum') && value ? 
+                                new Date(value).toLocaleDateString('de-DE') : value;
+                            html += `<div style="margin: 0.25rem 0;">${field.label}: <strong>${displayValue || '[Bitte ausfüllen]'}</strong></div>`;
+                        }
+                    });
+                    html += '</div>';
+                }
+                break;
+                
+            case 'options':
+                if (section.fields && section.fields.length > 0) {
+                    html += '<div style="margin: 1rem 0;">';
+                    if (section.title) {
+                        html += `<h3 style="margin-bottom: 0.5rem; font-size: 1rem;">${section.title}</h3>`;
+                    }
+                    section.fields.forEach(fieldKey => {
+                        const field = template.template_fields?.[fieldKey];
+                        const value = formData[fieldKey];
+                        if (field) {
+                            const displayValue = typeof value === 'boolean' ? (value ? 'Ja' : 'Nein') : (value || 'Nein');
+                            html += `<div style="margin: 0.25rem 0;">${field.label}: <strong>${displayValue}</strong></div>`;
+                        }
+                    });
+                    html += '</div>';
+                }
+                break;
+                
+            default:
+                if (section.content) {
+                    html += `<p style="margin: 1rem 0;">${section.content}</p>`;
+                }
+        }
+    });
+    
+    html += '</div>';
+    return html;
 }
 
 // Collect form data from all input fields
@@ -1495,12 +1707,6 @@ function setupLivePreview() {
         field.addEventListener('input', debounce(() => updateLivePreview(), 300));
         field.addEventListener('change', () => updateLivePreview());
     });
-    
-    // Also update on threshold type change
-    document.getElementById('thresholdType').addEventListener('change', () => {
-        loadDynamicFields(getCurrentFormData());
-        updateLivePreview();
-    });
 }
 
 function getCurrentFormData() {
@@ -1513,11 +1719,13 @@ function getCurrentFormData() {
         }
     });
     
-    // Add basic project data
-    formData.projectName = document.getElementById('projectName').value;
-    formData.projectDescription = document.getElementById('projectDescription').value;
-    formData.procurementType = document.getElementById('procurementType').value;
-    formData.thresholdType = document.getElementById('thresholdType').value;
+    // Add basic project data from state if available
+    if (state.currentProject) {
+        formData.projectName = state.currentProject.name;
+        formData.projectDescription = state.currentProject.description;
+        formData.procurementType = state.currentProject.procurement_type;
+        formData.thresholdType = state.currentProject.threshold_type;
+    }
     
     return formData;
 }
@@ -2421,6 +2629,24 @@ function handleDownloadAllZip() {
     }, 1000);
 }
 
+// Project Edit Modal Functions  
+function openProjectEditModal(projectId) {
+    const project = state.projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    // Fill modal with project data
+    document.getElementById('modalProjectName').value = project.name || '';
+    document.getElementById('modalProjectDescription').value = project.description || '';
+    document.getElementById('modalProcurementType').value = project.procurement_type || '';
+    document.getElementById('modalThresholdType').value = project.threshold_type || '';
+    
+    // Store project ID in form for later saving
+    document.getElementById('basicDataForm').dataset.projectId = projectId;
+    
+    // Show modal
+    document.getElementById('basicDataModal').style.display = 'block';
+}
+
 // Basic Data Modal Functions
 function openBasicDataModal() {
     const modal = document.getElementById('basicDataModal');
@@ -2438,45 +2664,54 @@ function openBasicDataModal() {
 
 function closeBasicDataModal() {
     document.getElementById('basicDataModal').style.display = 'none';
+    // Clear project ID from form
+    delete document.getElementById('basicDataForm').dataset.projectId;
 }
 
 function handleModalThresholdChange() {
     // Handle threshold change in modal if needed
 }
 
-function updateProjectSummary() {
-    // Update the project summary display
-    document.getElementById('summaryProjectName').textContent = state.formData.projectName || 'Kein Projekt geladen';
-    document.getElementById('summaryProjectDescription').textContent = state.formData.projectDescription || 'Bitte Grunddaten eingeben';
-    document.getElementById('summaryProcurementType').textContent = state.formData.procurementType || '-';
-    
-    const thresholdMap = {
-        'unterschwellig': 'Unterschwellig (UVgO)',
-        'oberschwellig': 'Oberschwellig (VgV)'
-    };
-    document.getElementById('summaryThresholdType').textContent = thresholdMap[state.formData.thresholdType] || '-';
-}
 
-function handleBasicDataSubmit(e) {
+async function handleBasicDataSubmit(e) {
     e.preventDefault();
     
-    // Get form data
     const formData = new FormData(e.target);
+    const projectId = e.target.dataset.projectId;
     
-    // Update state
-    state.formData.projectName = formData.get('name');
-    state.formData.projectDescription = formData.get('description');
-    state.formData.procurementType = formData.get('procurement_type');
-    state.formData.thresholdType = formData.get('threshold_type');
+    if (!projectId) {
+        showToast('Kein Projekt ausgewählt', 'error');
+        return;
+    }
     
-    // Update summary display
-    updateProjectSummary();
+    const projectData = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        procurement_type: formData.get('procurement_type'),
+        threshold_type: formData.get('threshold_type')
+    };
     
-    // Close modal
-    closeBasicDataModal();
-    
-    // Show success message
-    showToast('Grunddaten aktualisiert', 'success');
+    try {
+        // Update project
+        await pb.collection('projects').update(projectId, projectData);
+        
+        // Update local state
+        const projectIndex = state.projects.findIndex(p => p.id === projectId);
+        if (projectIndex !== -1) {
+            state.projects[projectIndex] = { ...state.projects[projectIndex], ...projectData };
+        }
+        
+        // Re-render projects
+        renderProjects();
+        
+        // Close modal
+        closeBasicDataModal();
+        
+        showToast('Projektdaten aktualisiert', 'success');
+    } catch (error) {
+        console.error('Error updating project:', error);
+        showToast('Fehler beim Aktualisieren: ' + error.message, 'error');
+    }
 }
 
 // Quick project form submission (now used by modal)
@@ -2615,6 +2850,7 @@ function handleModalProjectThresholdChange() {
 
 // Export functions for global access
 window.showProjectEdit = showProjectEdit;
+window.openProjectEditModal = openProjectEditModal;
 window.openBasicDataModal = openBasicDataModal;
 window.closeBasicDataModal = closeBasicDataModal;
 window.handleModalThresholdChange = handleModalThresholdChange;

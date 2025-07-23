@@ -136,44 +136,8 @@
                     
                     <div class="panel-content">
                         <form id="projectForm">
-                            <!-- Project Summary Card -->
-                            <div class="card">
-                                <div class="card-header">
-                                    <i data-feather="folder"></i>
-                                    <h2>Projekt-Übersicht</h2>
-                                    <button type="button" class="btn btn-small btn-secondary" onclick="openBasicDataModal()" style="margin-left: auto;">
-                                        <i data-feather="edit"></i>
-                                        <span>Grunddaten bearbeiten</span>
-                                    </button>
-                                </div>
-                                <div class="card-body">
-                                    <div id="projectSummary" style="padding: 1rem; background: var(--gray-50); border-radius: 8px;">
-                                        <p style="margin: 0; font-weight: 600; font-size: 1.125rem;" id="summaryProjectName">Kein Projekt geladen</p>
-                                        <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);" id="summaryProjectDescription">Bitte Grunddaten eingeben</p>
-                                        <div style="display: flex; gap: 2rem; margin-top: 1rem;">
-                                            <div>
-                                                <span style="font-size: 0.875rem; color: var(--gray-500);">Vergabeart:</span>
-                                                <span style="font-weight: 500;" id="summaryProcurementType">-</span>
-                                            </div>
-                                            <div>
-                                                <span style="font-size: 0.875rem; color: var(--gray-500);">Schwellenwert:</span>
-                                                <span style="font-weight: 500;" id="summaryThresholdType">-</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="card" style="margin-top: 1.5rem;">
-                                <div class="card-header">
-                                    <i data-feather="file-text"></i>
-                                    <h2>Template-Felder</h2>
-                                </div>
-                                <div class="card-body">
-                                    <div id="dynamicFormFields">
-                                        <!-- Dynamic form fields will be loaded here -->
-                                    </div>
-                                </div>
+                            <div id="dynamicFormFields">
+                                <!-- Dynamic form fields will be loaded here -->
                             </div>
                             
                             <div class="form-actions" style="margin-top: 1.5rem;">
@@ -203,11 +167,19 @@
                     </div>
                     
                     <div class="panel-content">
+                        <!-- Template Selector -->
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label for="templateSelector">Vorlage auswählen:</label>
+                            <select id="templateSelector" class="form-control" style="width: 100%;">
+                                <option value="">Bitte wählen Sie eine Vorlage...</option>
+                            </select>
+                        </div>
+                        
                         <div id="documentsList" class="documents-container">
                             <div class="empty-state">
                                 <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1;"></i>
-                                <h4>Keine Dokumente vorhanden</h4>
-                                <p>Geben Sie Projektdaten ein und speichern Sie, um Dokumente zu generieren.</p>
+                                <h3>Keine Dokumente vorhanden</h3>
+                                <p>Füllen Sie das Formular aus und speichern Sie, um Dokumente zu generieren.</p>
                             </div>
                         </div>
                     </div>
@@ -295,7 +267,7 @@
     <div id="basicDataModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-                <h3 style="margin: 0;">Grunddaten bearbeiten</h3>
+                <h3 style="margin: 0;">Projektdaten bearbeiten</h3>
                 <button class="close-btn" onclick="closeBasicDataModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
             </div>
             <form id="basicDataForm">

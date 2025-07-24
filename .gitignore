@@ -1,3 +1,5 @@
+.gitgnore
+
 # PocketBase
 pb_data/
 *.db
@@ -12,6 +14,7 @@ pocketbase.exe
 # Test files
 test/*.db
 test/pb_data/
+test/*.*
 
 # Generated documents
 generated_documents/
@@ -28,3 +31,5 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+docs/

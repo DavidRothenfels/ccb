@@ -619,9 +619,9 @@ function populateTemplateSelector() {
     
     const applicableTemplates = state.templates.filter(template => {
         if (thresholdType === 'oberschwellig') {
-            return ['VgV', 'VgV_UVgO', 'SektVO'].includes(template.category);
+            return ['VgV', 'VSVgV', 'Vermerk'].includes(template.category);
         } else {
-            return ['UVgO', 'VgV_UVgO'].includes(template.category);
+            return ['UVgO', 'Vermerk'].includes(template.category);
         }
     });
     
@@ -699,9 +699,9 @@ function loadDynamicFields(savedData = {}) {
     // Filter templates based on threshold
     const applicableTemplates = state.templates.filter(template => {
         if (thresholdType === 'oberschwellig') {
-            return ['VgV', 'VgV_UVgO', 'SektVO'].includes(template.category);
+            return ['VgV', 'VSVgV', 'Vermerk'].includes(template.category);
         } else {
-            return ['UVgO', 'VgV_UVgO'].includes(template.category);
+            return ['UVgO', 'Vermerk'].includes(template.category);
         }
     });
     
@@ -746,8 +746,20 @@ function loadDynamicFields(savedData = {}) {
         general: 'Allgemeine Angaben'
     };
     
-    // Order sections
-    const sectionOrder = ['vergabestelle', 'auftrag', 'verfahren', 'wert', 'fristen', 'zuschlag', 'sonstiges'];
+    // Order sections - most important first
+    const sectionOrder = [
+        'projekt',           // Projektinformationen (Vergabenummer, Maßnahme)
+        'vergabestelle',     // Kontaktdaten Vergabestelle
+        'auftrag',           // Auftragsbeschreibung
+        'verfahren',         // Verfahrensart
+        'fristen',           // Termine und Fristen
+        'wert',              // Wertangaben
+        'empfaenger',        // Empfänger/Bieter
+        'kommunikation',     // Kommunikationsdaten
+        'bewerber',          // Bewerberanzahl
+        'zuschlag',          // Zuschlagskriterien
+        'sonstiges'          // Sonstige Angaben
+    ];
     const orderedSections = {};
     
     // First add ordered sections
@@ -1050,7 +1062,13 @@ function showLiveTemplatePreview() {
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">${selectedTemplate.name}</h3>
-                <span class="badge badge-processing">Vorschau</span>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="badge badge-processing">Vorschau</span>
+                    <button class="btn btn-small btn-secondary" onclick="downloadPreviewAsDocx('${selectedTemplate.id}')">
+                        <i data-feather="download"></i>
+                        <span>DOCX</span>
+                    </button>
+                </div>
             </div>
             <div class="document-preview" style="max-height: 600px; overflow-y: auto;">
                 ${renderTemplateContent(selectedTemplate, formData)}
@@ -1576,6 +1594,71 @@ function prepareExportData(config) {
     return JSON.parse(result);
 }
 
+// Download preview as DOCX
+async function downloadPreviewAsDocx(templateId) {
+    const template = state.templates.find(t => t.id === templateId);
+    if (!template) return;
+    
+    try {
+        showToast('DOCX wird generiert...', 'info');
+        
+        const formData = collectFormData();
+        const projectName = state.currentProject?.name?.replace(/[^a-zA-Z0-9]/g, '_') || 'projekt';
+        const templateName = template.name.replace(/[^a-zA-Z0-9]/g, '_');
+        
+        // Generate HTML content
+        const content = renderTemplateContent(template, formData);
+        
+        // Clean HTML for DOCX conversion
+        const cleanHtml = content
+            .replace(/<button[^>]*>.*?<\/button>/gi, '')
+            .replace(/<i[^>]*data-feather[^>]*><\/i>/gi, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        
+        const fullHtml = `
+            <!DOCTYPE html>
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>
+            <head>
+                <meta charset='utf-8'>
+                <title>${template.name}</title>
+                <style>
+                    body { font-family: 'Calibri', sans-serif; font-size: 11pt; line-height: 1.4; margin: 2cm; }
+                    h1, h2, h3 { color: #333; margin-top: 1.5em; margin-bottom: 0.5em; }
+                    h1 { font-size: 16pt; }
+                    h2 { font-size: 14pt; }
+                    h3 { font-size: 12pt; }
+                    div { margin-bottom: 0.5em; }
+                    strong { font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                ${cleanHtml}
+            </body>
+            </html>
+        `;
+        
+        // Create blob and download
+        const blob = new Blob([fullHtml], { 
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+        });
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${projectName}_${templateName}_Vorschau.docx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showToast('DOCX erfolgreich heruntergeladen', 'success');
+    } catch (error) {
+        console.error('Error generating DOCX:', error);
+        showToast('Fehler beim Generieren der DOCX-Datei', 'error');
+    }
+}
+
 // Document Actions - Download aktuell angezeigtes Dokument als DOCX
 async function downloadDocumentAsDocx(documentId) {
     const doc = state.documents.find(d => d.id === documentId);
@@ -1748,11 +1831,108 @@ function debounce(func, wait) {
     };
 }
 
+// Download all template previews as ZIP
+async function handleDownloadAllPreviews() {
+    if (!window.JSZip) {
+        showToast('ZIP-Bibliothek nicht geladen', 'error');
+        return;
+    }
+    
+    try {
+        showToast('Erstelle ZIP-Archiv mit allen Vorlagen...', 'info');
+        const zip = new JSZip();
+        const projectName = state.currentProject?.name?.replace(/[^a-z0-9]/gi, '_') || 'projekt';
+        const formData = collectFormData();
+        
+        // Get all applicable templates based on threshold
+        const thresholdType = state.currentProject?.threshold_type;
+        console.log('Threshold type:', thresholdType);
+        console.log('Available templates:', state.templates);
+        
+        const applicableTemplates = state.templates.filter(template => {
+            if (!thresholdType) return true; // If no threshold, include all
+            if (thresholdType === 'oberschwellig') {
+                return ['VgV', 'VSVgV', 'Vermerk'].includes(template.category);
+            } else {
+                return ['UVgO', 'Vermerk'].includes(template.category);
+            }
+        });
+        
+        console.log('Applicable templates:', applicableTemplates);
+        
+        if (applicableTemplates.length === 0) {
+            showToast('Keine passenden Vorlagen für diesen Schwellenwert gefunden', 'warning');
+            return;
+        }
+        
+        // Generate DOCX for each template
+        for (const template of applicableTemplates) {
+            try {
+                const templateName = template.name.replace(/[^a-zA-Z0-9]/g, '_');
+                const content = renderTemplateContent(template, formData);
+                
+                const cleanHtml = content
+                    .replace(/<button[^>]*>.*?<\/button>/gi, '')
+                    .replace(/<i[^>]*data-feather[^>]*><\/i>/gi, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                
+                const documentHtml = `
+                    <!DOCTYPE html>
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>
+                    <head>
+                        <meta charset='utf-8'>
+                        <title>${template.name}</title>
+                        <style>
+                            body { font-family: 'Calibri', sans-serif; font-size: 11pt; line-height: 1.4; margin: 2cm; }
+                            h1, h2, h3 { color: #333; margin-top: 1.5em; margin-bottom: 0.5em; }
+                            h1 { font-size: 16pt; }
+                            h2 { font-size: 14pt; }
+                            h3 { font-size: 12pt; }
+                            div { margin-bottom: 0.5em; }
+                            strong { font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>
+                        <div style="text-align: center; margin-bottom: 2em;">
+                            <h1>${template.name}</h1>
+                            <p><strong>Projekt:</strong> ${state.currentProject?.name || 'Neues Projekt'}</p>
+                            <p><strong>Erstellt am:</strong> ${new Date().toLocaleDateString('de-DE')}</p>
+                        </div>
+                        ${cleanHtml}
+                    </body>
+                    </html>
+                `;
+                
+                zip.file(`${templateName}.docx`, documentHtml, {binary: false});
+            } catch (error) {
+                console.error(`Error processing template ${template.name}:`, error);
+            }
+        }
+        
+        // Generate and download ZIP
+        const blob = await zip.generateAsync({type: 'blob'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${projectName}_Alle_Vorlagen.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showToast('ZIP-Archiv erfolgreich heruntergeladen', 'success');
+    } catch (error) {
+        console.error('Error creating ZIP:', error);
+        showToast('Fehler beim Erstellen des ZIP-Archivs', 'error');
+    }
+}
+
 // Download all documents as ZIP
 async function handleDownloadAll() {
+    // Wenn keine gespeicherten Dokumente vorhanden sind, lade alle Templates als Vorschau
     if (!state.documents || state.documents.length === 0) {
-        showToast('Keine Dokumente zum Herunterladen vorhanden', 'warning');
-        return;
+        return handleDownloadAllPreviews();
     }
     
     if (!window.JSZip) {
@@ -2860,6 +3040,7 @@ window.closeCreateProjectModal = closeCreateProjectModal;
 window.handleModalProjectThresholdChange = handleModalProjectThresholdChange;
 window.handleQuickProjectCreate = handleQuickProjectCreate;
 window.downloadDocumentAsDocx = downloadDocumentAsDocx;
+window.downloadPreviewAsDocx = downloadPreviewAsDocx;
 window.copyDocument = copyDocument;
 window.openCommentModal = openCommentModal;
 window.handleNewProject = handleNewProject;

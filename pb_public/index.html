@@ -11,30 +11,68 @@
         <!-- Login Screen -->
         <div id="loginScreen" class="screen active">
             <div class="login-container">
-                <div class="login-box">
-                    <div style="text-align: center; margin-bottom: 2rem;">
-                        <h2 style="margin: 0; font-size: 1.75rem; font-weight: 600;">123Vergabe anmelden</h2>
+                <div class="login-content">
+                    <!-- Left Side - Branding -->
+                    <div class="login-branding">
+                        <div class="branding-content">
+                            <div class="logo-large">
+                                <i data-feather="layers" style="width: 64px; height: 64px; color: white;"></i>
+                            </div>
+                            <h1 class="brand-title">CityChallenge</h1>
+                            <p class="brand-subtitle">Digitale Vergabevorbereitung für Berlin</p>
+                            
+                            <div class="features-list">
+                                <div class="feature-item">
+                                    <i data-feather="check-circle" style="width: 20px; height: 20px;"></i>
+                                    <span>Einfache Vergabedokumente</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i data-feather="check-circle" style="width: 20px; height: 20px;"></i>
+                                    <span>Automatische Dokumentenerstellung</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i data-feather="check-circle" style="width: 20px; height: 20px;"></i>
+                                    <span>Dynamisch anpassbar</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <form id="loginForm" method="post">
-                        <div class="form-group">
-                            <label for="email">E-Mail</label>
-                            <input type="email" id="email" name="email" required placeholder="ihre.email@berlin.de">
+                    <!-- Right Side - Login Form -->
+                    <div class="login-form-section">
+                        <div class="login-box">
+                            <div class="login-header">
+                                <h2>Willkommen zurück</h2>
+                                <p>Melden Sie sich in Ihrem Konto an</p>
+                            </div>
+                            
+                            <form id="loginForm" method="post">
+                                <div class="form-group">
+                                    <label for="email">E-Mail-Adresse</label>
+                                    <div class="input-icon">
+                                        <i data-feather="mail" style="width: 20px; height: 20px;"></i>
+                                        <input type="email" id="email" name="email" required placeholder="ihre.email@berlin.de">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="password">Passwort</label>
+                                    <div class="input-icon">
+                                        <i data-feather="lock" style="width: 20px; height: 20px;"></i>
+                                        <input type="password" id="password" name="password" required placeholder="••••••••">
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary btn-login">
+                                        <i data-feather="log-in"></i>
+                                        <span>Anmelden</span>
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <div class="login-footer">
+                                <p>City Challenge Berlin 2025</p>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="password">Passwort</label>
-                            <input type="password" id="password" name="password" required placeholder="••••••••">
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary" style="width: 100%;">
-                                <i data-feather="log-in"></i>
-                                <span>Anmelden</span>
-                            </button>
-                        </div>
-                    </form>
-                    
-                    <div class="login-footer" style="margin-top: 2rem;">
-                        <p style="text-align: center; font-size: 0.875rem; color: var(--gray);">City Challenge Berlin 2025</p>
                     </div>
                 </div>
             </div>
@@ -58,13 +96,6 @@
                         </div>
                     </nav>
                     
-                    <!-- Settings section for admin -->
-                    <div class="settings-section" id="adminSettings" style="display:none; margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--gray-light);">
-                        <div class="nav-item" data-section="admin">
-                            <i data-feather="settings"></i>
-                            <span>Einstellungen</span>
-                        </div>
-                    </div>
                     
                     <div class="user-info">
                         <h4 id="sidebarUserName">Benutzer</h4>
@@ -106,14 +137,6 @@
                                 </div>
                             </div>
                         </section>
-                        
-                        
-                        <!-- Admin Section -->
-                        <section id="adminSection" class="section">
-                            <div id="adminContent" class="card">
-                                <!-- Admin content will be loaded here -->
-                            </div>
-                        </section>
                     </div>
                 </main>
             </div>
@@ -121,19 +144,39 @@
         
         <!-- Project Edit Screen -->
         <div id="projectEditScreen" class="screen">
-            <div class="split-view-container">
+            <div class="app-container">
+                <!-- Sidebar -->
+                <aside class="sidebar" id="sidebarEdit">
+                    <div class="logo">
+                        <i data-feather="layers" style="color: var(--primary);"></i>
+                        <span>City<span style="color: #374151;">Challenge</span></span>
+                    </div>
+                    
+                    <nav class="nav-section">
+                        <h3>NAVIGATION</h3>
+                        <div class="nav-item active" id="backToProjectsNav" style="cursor: pointer;">
+                            <i data-feather="arrow-left"></i>
+                            <span>Zurück zu Projekten</span>
+                        </div>
+                    </nav>
+                    
+                    <div class="user-info">
+                        <h4 id="sidebarEditUserName">Benutzer</h4>
+                        <p id="sidebarEditUserEmail">email@example.com</p>
+                        <button class="btn btn-secondary" id="logoutBtnEdit" style="width: 100%;">
+                            <i data-feather="log-out"></i>
+                            <span>Abmelden</span>
+                        </button>
+                    </div>
+                </aside>
+                
+                <!-- Main Content with Split View -->
+                <main class="main-content">
+                    <div class="split-view-container">
                 <!-- Left Panel - Input -->
                 <div class="split-panel left-panel">
                     <div class="panel-header">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; align-items: center; gap: 1rem;">
-                                <button id="backToDashboard" class="btn btn-secondary">
-                                    <i data-feather="arrow-left"></i>
-                                    <span>Zurück</span>
-                                </button>
-                                <h2>Projektdaten eingeben</h2>
-                            </div>
-                        </div>
+                        <h2>Projektdaten eingeben</h2>
                     </div>
                     
                     <div class="panel-content">
@@ -161,7 +204,7 @@
                     <div class="panel-header">
                         <h2>Generierte Dokumente</h2>
                         <div class="header-actions">
-                            <button id="downloadAllBtn" class="btn btn-secondary">
+                            <button id="downloadAllBtn" class="btn btn-blue" style="min-width: 150px; height: 40px;">
                                 <i data-feather="download"></i>
                                 <span>Alle herunterladen</span>
                             </button>
@@ -186,6 +229,9 @@
                         </div>
                     </div>
                 </div>
+            </div>
+                    </div>
+                </main>
             </div>
         </div>
     </div>
@@ -265,6 +311,17 @@
         </div>
     </div>
     
+    <!-- Comments Sidebar Popup -->
+    <div id="commentsSidebar" class="comments-sidebar">
+        <div class="comments-sidebar-header">
+            <h3>Kommentare</h3>
+            <button class="close-btn" onclick="closeCommentsSidebar()">&times;</button>
+        </div>
+        <div id="commentsSidebarContent" class="comments-sidebar-content">
+            <!-- Comments will be loaded here -->
+        </div>
+    </div>
+    
     <!-- Basic Data Modal (Grunddaten Popup) -->
     <div id="basicDataModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
@@ -299,6 +356,15 @@
                         <option value="oberschwellig">Oberschwellig (VgV)</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="modalProjectStatus">Status</label>
+                    <select id="modalProjectStatus" name="status" required>
+                        <option value="draft">Entwurf</option>
+                        <option value="in_review">In Prüfung</option>
+                        <option value="approved">Genehmigt</option>
+                        <option value="submitted">Eingereicht</option>
+                    </select>
+                </div>
                 <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
                     <button type="button" onclick="closeBasicDataModal()" class="btn btn-secondary">Abbrechen</button>
                     <button type="submit" class="btn btn-primary">Übernehmen</button>
@@ -307,51 +373,6 @@
         </div>
     </div>
     
-    <!-- API Settings Modal -->
-    <div id="apiSettingsModal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
-            <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-                <h3 style="margin: 0;">API-Konfiguration</h3>
-                <button class="close-btn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
-            </div>
-            <form id="apiSettingsForm">
-                <div class="form-group">
-                    <label for="apiName">Konfigurationsname</label>
-                    <input type="text" id="apiName" name="name" required placeholder="z.B. Berlin Vergabeplattform">
-                </div>
-                <div class="form-group">
-                    <label for="apiUrl">API-URL</label>
-                    <input type="url" id="apiUrl" name="api_url" required placeholder="https://www.berlin.de/vergabeplattform/api/">
-                </div>
-                <div class="form-group">
-                    <label for="apiToken">Auth-Token</label>
-                    <input type="password" id="apiToken" name="auth_token" placeholder="Bearer Token">
-                </div>
-                <div class="form-group">
-                    <label for="dataFormat">Datenformat</label>
-                    <select id="dataFormat" name="data_format" required>
-                        <option value="json">JSON</option>
-                        <option value="xml">XML</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="jsonMapping">JSON-Mapping</label>
-                    <textarea id="jsonMapping" name="request_template" rows="10" placeholder='{"vergabenummer": "{{vergabenummer}}", "bezeichnung": "{{auftrag_bezeichnung}}"}' style="font-family: var(--mono);"></textarea>
-                    <small style="color: var(--gray); font-size: 0.875rem;">Verwenden Sie {{feldname}} als Platzhalter für Formularfelder</small>
-                </div>
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 0.5rem;">
-                        <input type="checkbox" name="active" id="apiActive" style="width: auto;">
-                        <span>Diese Konfiguration aktivieren</span>
-                    </label>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Konfiguration speichern</button>
-                    <button type="button" class="btn btn-secondary close-btn">Abbrechen</button>
-                </div>
-            </form>
-        </div>
-    </div>
     
     <script src="https://unpkg.com/pocketbase/dist/pocketbase.umd.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>

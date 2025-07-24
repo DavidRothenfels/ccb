@@ -25,10 +25,30 @@ const screens = {
 };
 
 // Initialize app
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('=== Page loaded ===');
+    console.log('Auth Store Valid:', pb.authStore.isValid);
+    console.log('Auth Store Model:', pb.authStore.model);
+    
     // Check if user is logged in
     if (pb.authStore.isValid) {
-        state.currentUser = pb.authStore.model;
+        // The authStore.model might not have all fields, so fetch the full user record
+        if (pb.authStore.model) {
+            try {
+                // Fetch the complete user record to ensure we have all fields including email
+                const fullUser = await pb.collection('users').getOne(pb.authStore.model.id);
+                state.currentUser = fullUser;
+                console.log('Setting current user with full data:', state.currentUser);
+                console.log('User email from full record:', state.currentUser.email);
+            } catch (error) {
+                console.error('Error fetching full user data:', error);
+                // Fallback to authStore model
+                state.currentUser = pb.authStore.model;
+            }
+        } else {
+            state.currentUser = pb.authStore.model;
+        }
+        console.log('Final current user:', state.currentUser);
         showDashboard();
     } else {
         showLogin();
@@ -78,6 +98,8 @@ function setupEventListeners() {
     
     // Back to dashboard
     document.getElementById('backToDashboard').addEventListener('click', showDashboard);
+    
+    // Note: Event listeners for edit sidebar are set up in showProjectEdit function
     
     // Project form
     document.getElementById('projectForm').addEventListener('submit', handleProjectSave);
@@ -133,6 +155,10 @@ async function handleLogin(e) {
         );
         
         state.currentUser = authData.record;
+        console.log('=== User logged in ===');
+        console.log('User ID:', state.currentUser.id);
+        console.log('User Email:', state.currentUser.email);
+        console.log('Full User Object:', state.currentUser);
         showDashboard();
     } catch (error) {
         alert('Anmeldung fehlgeschlagen: ' + error.message);
@@ -159,11 +185,10 @@ function showDashboard() {
     document.getElementById('sidebarUserName').textContent = state.currentUser.name || 'Benutzer';
     document.getElementById('sidebarUserEmail').textContent = state.currentUser.email;
     
-    // Show admin section if user is admin
-    const isAdmin = state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin');
+    // Remove admin settings section - no longer needed
     const adminSettings = document.getElementById('adminSettings');
     if (adminSettings) {
-        adminSettings.style.display = isAdmin ? 'block' : 'none';
+        adminSettings.style.display = 'none';
     }
     
     // Initialize Feather icons
@@ -181,26 +206,59 @@ function showProjectEdit(projectId = null) {
     hideAllScreens();
     screens.projectEdit.classList.add('active');
     
+    // Update user info in edit sidebar
+    const editUserName = document.getElementById('sidebarEditUserName');
+    const editUserEmail = document.getElementById('sidebarEditUserEmail');
+    if (editUserName && state.currentUser) {
+        editUserName.textContent = state.currentUser.name || 'Benutzer';
+    }
+    if (editUserEmail && state.currentUser) {
+        editUserEmail.textContent = state.currentUser.email;
+    }
+    
+    // Setup navigation back button
+    const backToProjectsNav = document.getElementById('backToProjectsNav');
+    if (backToProjectsNav) {
+        backToProjectsNav.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showDashboard();
+        };
+    }
+    
+    // Setup logout button in edit sidebar
+    const logoutBtnEdit = document.getElementById('logoutBtnEdit');
+    if (logoutBtnEdit) {
+        logoutBtnEdit.onclick = function(e) {
+            e.preventDefault();
+            handleLogout();
+        };
+    }
+    
+    // Initialize feather icons after DOM update
+    setTimeout(() => feather.replace(), 100);
+    
     if (projectId) {
-        loadProject(projectId);
-    } else {
-        // New project
-        state.currentProject = null;
-        document.getElementById('projectForm').reset();
-        
-        // Clear template dropdown
-        document.getElementById('templateSelector').innerHTML = '<option value="">Vorlage wählen...</option>';
-        
-        // Clear form fields and documents
-        document.getElementById('dynamicFormFields').innerHTML = '<div class="empty-state"><p>Bitte erst ein Projekt über die Projektübersicht erstellen.</p></div>';
+        // Show loading state while project loads
+        document.getElementById('dynamicFormFields').innerHTML = '<div class="empty-state"><p>Projekt wird geladen...</p></div>';
         document.getElementById('documentsList').innerHTML = `
             <div class="empty-state">
-                <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1;"></i>
-                <h3>Kein Projekt geladen</h3>
-                <p>Bitte öffnen Sie ein Projekt aus der Übersicht.</p>
+                <i data-feather="loader" style="width: 48px; height: 48px; stroke-width: 1; animation: spin 1s linear infinite;"></i>
+                <h3>Dokumente werden geladen</h3>
+                <p>Einen Moment bitte...</p>
             </div>
         `;
+        // Hide form buttons during loading
+        const formActions = document.querySelector('#projectForm .form-actions');
+        if (formActions) {
+            formActions.style.display = 'none';
+        }
         feather.replace();
+        loadProject(projectId);
+    } else {
+        // New project - redirect to dashboard
+        showToast('Bitte erstellen Sie ein Projekt über die Projektübersicht', 'info');
+        showDashboard();
     }
 }
 
@@ -216,20 +274,29 @@ function handleNavigation(e) {
     const navItem = e.currentTarget;
     const section = navItem.dataset.section;
     
+    // Skip if no section data
+    if (!section) return;
+    
     // Update active nav
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     navItem.classList.add('active');
     
     // Show section
     document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-    document.getElementById(section + 'Section').classList.add('active');
+    const sectionElement = document.getElementById(section + 'Section');
+    if (sectionElement) {
+        sectionElement.classList.add('active');
+    }
     
     // Update page title
     const titles = {
         projects: 'Meine Projekte',
         admin: 'Administration'
     };
-    document.getElementById('pageTitle').textContent = titles[section];
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle && titles[section]) {
+        pageTitle.textContent = titles[section];
+    }
     
     // Update header actions based on section
     const headerActions = document.getElementById('headerActions');
@@ -247,10 +314,7 @@ function handleNavigation(e) {
         headerActions.innerHTML = '';
     }
     
-    // Load section-specific data
-    if (section === 'admin' && (state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin'))) {
-        loadAdminData();
-    }
+    // Admin section removed - no special sections needed
 }
 
 // Projects Management
@@ -267,15 +331,31 @@ async function loadProjects() {
             return;
         }
         
-        // Load all projects and filter client-side
-        // Note: projects table has no 'created' field, so we sort by id instead
+        // Load projects with proper filter to match collection rules
+        // The collection rule requires: user = @request.auth.id
         const records = await pb.collection('projects').getFullList({
-            sort: '-id'
+            filter: `user = "${state.currentUser.id}"`
+            // Note: Sorting by 'updated' field is not supported in PocketBase v0.28
+            // We'll sort client-side after fetching
         });
         
-        // Filter to only show current user's projects
-        // Handle both string IDs (old data) and relations (new data)
-        state.projects = records.filter(project => {
+        // Sort projects by updated date (newest first) - client-side sorting
+        // since server-side sorting by 'updated' is not available
+        const sortedRecords = records.sort((a, b) => {
+            const dateA = new Date(a.updated || a.created);
+            const dateB = new Date(b.updated || b.created);
+            return dateB - dateA; // Descending order (newest first)
+        });
+        
+        // Debug: Log what we receive from API
+        if (sortedRecords.length > 0) {
+            console.log('Sample project from API:', sortedRecords[0]);
+            console.log('Project updated field:', sortedRecords[0].updated);
+            console.log('Project created field:', sortedRecords[0].created);
+        }
+        
+        // No need to filter client-side since we're already filtering in the query
+        state.projects = sortedRecords.filter(project => {
             let projectUserId;
             
             // Check if project.user is an object (expanded relation)
@@ -345,10 +425,6 @@ function renderProjects() {
                 <i data-feather="folder" style="width: 48px; height: 48px; stroke-width: 1;"></i>
                 <h3>Keine Projekte vorhanden</h3>
                 <p>Erstellen Sie Ihr erstes Vergabeprojekt</p>
-                <button onclick="handleNewProject()" class="btn btn-ai-generate">
-                    <i data-feather="plus"></i>
-                    <span>Neues Projekt erstellen</span>
-                </button>
             </div>
         `;
         feather.replace();
@@ -364,27 +440,32 @@ function renderProjects() {
                 </h3>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                     <span class="status ${project.status || 'draft'}">${getStatusLabel(project.status || 'draft')}</span>
-                    <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); openProjectEditModal('${project.id}')" title="Projektdaten bearbeiten">
-                        <i data-feather="edit-2" style="width: 16px; height: 16px;"></i>
+                    <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); deleteProject('${project.id}')" title="Projekt löschen">
+                        <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
                     </button>
                 </div>
             </div>
-            <p style="color: var(--gray-600); margin-bottom: 1rem;">${project.description || 'Keine Beschreibung'}</p>
-            <div style="display: flex; gap: 1rem; margin-top: 1rem; font-size: 0.875rem; color: var(--gray);">
-                <span><i data-feather="tag" style="width: 14px; height: 14px; vertical-align: middle;"></i> ${project.procurement_type || 'Nicht definiert'}</span>
-                <span>•</span>
-                <span><i data-feather="layers" style="width: 14px; height: 14px; vertical-align: middle;"></i> ${project.threshold_type || 'Nicht definiert'}</span>
-                <span>•</span>
-                <span><i data-feather="calendar" style="width: 14px; height: 14px; vertical-align: middle;"></i> ${new Date(project.created).toLocaleDateString('de-DE')}</span>
-            </div>
-            ${state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin') ? `
-                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                    <button class="btn btn-secondary" onclick="event.stopPropagation(); deleteProject('${project.id}')" style="width: 100%;">
-                        <i data-feather="trash-2"></i>
-                        <span>Projekt löschen</span>
-                    </button>
+            <p style="color: var(--gray-600); margin-bottom: 0.75rem;">${project.description || 'Keine Beschreibung'}</p>
+            <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; color: var(--gray);">
+                <div style="display: flex; align-items: center;">
+                    <i data-feather="tag" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+                    <span>${project.procurement_type || 'Nicht definiert'}</span>
                 </div>
-            ` : ''}
+                <div style="display: flex; align-items: center;">
+                    <i data-feather="layers" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+                    <span>${project.threshold_type || 'Nicht definiert'}</span>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <i data-feather="clock" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+                    <span style="white-space: nowrap;">${formatGermanDate(project.updated || project.created)}</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <button class="btn btn-secondary" onclick="event.stopPropagation(); openProjectEditModal('${project.id}')" style="width: 100%;">
+                    <i data-feather="edit-2"></i>
+                    <span>Projektdaten bearbeiten</span>
+                </button>
+            </div>
             <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to right, var(--primary), var(--primary-dark)); height: 3px; transform: scaleX(0); transition: transform 0.2s ease;"></div>
         </div>
     `).join('');
@@ -401,6 +482,35 @@ function getStatusLabel(status) {
         'submitted': 'Eingereicht'
     };
     return labels[status] || status;
+}
+
+function formatGermanDate(dateString) {
+    if (!dateString) return 'Kein Datum';
+    
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            console.warn('Invalid date:', dateString);
+            return 'Ungültiges Datum';
+        }
+        
+        const months = [
+            'Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'
+        ];
+        
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        
+        // Return format: "24. Jan 2025, 14:30"
+        return `${day}. ${month} ${year}, ${hours}:${minutes}`;
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'Datumsfehler';
+    }
 }
 
 function handleNewProject() {
@@ -473,13 +583,23 @@ async function loadProject(projectId) {
         // Load dynamic fields
         loadDynamicFields(project.form_data || {});
         
+        // Show form buttons after loading
+        const formActions = document.querySelector('#projectForm .form-actions');
+        if (formActions) {
+            formActions.style.display = '';
+        }
+        
         // Load documents or show preview
         if (state.currentProject) {
             const docs = await pb.collection('documents').getList(1, 50, {
-                filter: `project = "${projectId}"`
+                filter: `project = "${projectId}"`,
+                expand: 'template'  // Add expand parameter to get template data
             });
             
             if (docs.items.length > 0) {
+                console.log('=== Documents loaded in loadProject ===');
+                console.log('Number of documents:', docs.items.length);
+                console.log('Documents:', docs.items);
                 state.documents = docs.items;
                 renderDocuments();
             } else {
@@ -525,15 +645,56 @@ async function handleProjectSave(e) {
     }
     
     try {
+        // Validate required fields and collect missing ones
+        const missingFields = [];
+        const allFields = getAllFieldsFromTemplates();
+        
+        Object.entries(allFields).forEach(([fieldKey, fieldDef]) => {
+            if (fieldDef.required) {
+                const value = dynamicData[fieldKey];
+                if (!value || (typeof value === 'string' && value.trim() === '')) {
+                    missingFields.push(fieldDef.label || fieldKey);
+                }
+            }
+        });
+        
         if (state.currentProject) {
             // Update existing project
             await pb.collection('projects').update(state.currentProject.id, projectData);
-            alert('Projekt aktualisiert');
+            
+            // Add validation comment if there are missing fields
+            if (missingFields.length > 0) {
+                const commentText = `Folgende Pflichtfelder fehlen noch:\n\n${missingFields.map(field => `• ${field}`).join('\n')}`;
+                await pb.collection('comments').create({
+                    document: state.currentProject.id,
+                    author: state.currentUser.id,
+                    comment_text: commentText,
+                    field_reference: 'validation',
+                    status: 'open'
+                });
+                showToast('Projekt aktualisiert. Hinweis: Es fehlen noch Pflichtfelder.', 'warning');
+            } else {
+                showToast('Projekt erfolgreich aktualisiert', 'success');
+            }
         } else {
             // Create new project
             const project = await pb.collection('projects').create(projectData);
             state.currentProject = project;
-            alert('Projekt erstellt');
+            
+            // Add validation comment if there are missing fields
+            if (missingFields.length > 0) {
+                const commentText = `Folgende Pflichtfelder fehlen noch:\n\n${missingFields.map(field => `• ${field}`).join('\n')}`;
+                await pb.collection('comments').create({
+                    document: project.id,
+                    author: state.currentUser.id,
+                    comment_text: commentText,
+                    field_reference: 'validation',
+                    status: 'open'
+                });
+                showToast('Projekt erstellt. Hinweis: Es fehlen noch Pflichtfelder.', 'warning');
+            } else {
+                showToast('Projekt erfolgreich erstellt', 'success');
+            }
         }
         
         // Generate documents
@@ -541,7 +702,7 @@ async function handleProjectSave(e) {
         
     } catch (error) {
         console.error('Error saving project:', error);
-        alert('Fehler beim Speichern: ' + error.message);
+        showToast('Fehler beim Speichern: ' + error.message, 'error');
     }
 }
 
@@ -551,7 +712,7 @@ async function loadTemplates() {
         console.log('Loading templates...');
         
         const records = await pb.collection('templates').getList(1, 50, {
-            filter: 'active = true',
+            filter: 'active=true',
             sort: 'category,name'
         });
         
@@ -669,6 +830,11 @@ function handleTemplateChange() {
     const savedData = state.currentProject?.form_data || {};
     loadDynamicFields(savedData);
     
+    // Highlight fields for selected template
+    if (selector.value) {
+        highlightTemplateFields(selector.value);
+    }
+    
     // Reload document preview for selected template
     renderDocuments();
 }
@@ -686,6 +852,38 @@ function handleThresholdChange() {
     loadDynamicFields(savedData);
 }
 
+// Helper function to get all fields from applicable templates
+function getAllFieldsFromTemplates() {
+    const thresholdType = state.currentProject?.threshold_type;
+    if (!thresholdType) return {};
+    
+    // Filter templates based on threshold_type field
+    const applicableTemplates = state.templates.filter(template => {
+        // If template has no threshold_type or it's 'beide', include it for any project
+        if (!template.threshold_type || template.threshold_type === 'beide') {
+            return true;
+        }
+        // Otherwise, match the project's threshold_type
+        return template.threshold_type === thresholdType;
+    });
+    
+    // Collect ALL fields from ALL applicable templates
+    const allFields = {};
+    
+    applicableTemplates.forEach(template => {
+        if (template.template_fields) {
+            Object.entries(template.template_fields).forEach(([key, field]) => {
+                // Avoid duplicating fields with same key
+                if (!allFields[key]) {
+                    allFields[key] = field;
+                }
+            });
+        }
+    });
+    
+    return allFields;
+}
+
 function loadDynamicFields(savedData = {}) {
     const container = document.getElementById('dynamicFormFields');
     
@@ -696,19 +894,23 @@ function loadDynamicFields(savedData = {}) {
         return;
     }
     
-    // Filter templates based on threshold
+    // Filter templates based on threshold_type field
     const applicableTemplates = state.templates.filter(template => {
-        if (thresholdType === 'oberschwellig') {
-            return ['VgV', 'VSVgV', 'Vermerk'].includes(template.category);
-        } else {
-            return ['UVgO', 'Vermerk'].includes(template.category);
+        // If template has no threshold_type or it's 'beide', include it for any project
+        if (!template.threshold_type || template.threshold_type === 'beide') {
+            return true;
         }
+        // Otherwise, match the project's threshold_type
+        return template.threshold_type === thresholdType;
     });
     
     if (applicableTemplates.length === 0) {
         container.innerHTML = '<div class="empty-state"><p>Keine Vorlagen für diesen Schwellenwert verfügbar.</p></div>';
         return;
     }
+    
+    // Store applicable templates globally for field highlighting
+    state.applicableTemplates = applicableTemplates;
     
     // Collect ALL fields from ALL applicable templates
     const allFields = {};
@@ -776,28 +978,49 @@ function loadDynamicFields(savedData = {}) {
         }
     });
     
-    container.innerHTML = Object.entries(orderedSections).map(([section, fields]) => `
-        <div class="form-section">
-            <h4 class="form-section-title">${sectionTitles[section] || section}</h4>
-            <div class="form-fields-grid">
-                ${Object.entries(fields).map(([key, field]) => {
-                    const value = savedData[key] || field.default || '';
-                    return renderFormField(key, field, value);
-                }).join('')}
+    // Render collapsible sections
+    container.innerHTML = Object.entries(orderedSections).map(([section, fields]) => {
+        const fieldCount = Object.keys(fields).length;
+        return `
+        <div class="form-section collapsible" data-section="${section}">
+            <div class="section-header" onclick="toggleSection('${section}')">
+                <h4 class="form-section-title">
+                    <span class="section-arrow">▼</span>
+                    ${sectionTitles[section] || section}
+                    <span class="field-count">(${fieldCount} Felder)</span>
+                </h4>
+            </div>
+            <div class="section-content collapsed" id="section-${section}">
+                <div class="form-fields-grid">
+                    ${Object.entries(fields).map(([key, field]) => {
+                        const value = savedData[key] || field.default || '';
+                        return renderFormField(key, field, value);
+                    }).join('')}
+                </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
     
     // Add input event listeners for live preview
     setupLivePreview();
+    
+    // Highlight fields if a template is selected
+    const selectedTemplateId = document.getElementById('templateSelector')?.value;
+    if (selectedTemplateId) {
+        highlightTemplateFields(selectedTemplateId);
+    }
 }
 
 function renderFormField(name, field, value = '') {
     const required = field.required ? 'required' : '';
+    const fieldWrapper = `<div class="form-field-wrapper" data-field-key="${name}">`;
+    const fieldWrapperEnd = `</div>`;
+    
+    let fieldHtml = '';
     
     switch (field.type) {
         case 'textarea':
-            return `
+            fieldHtml = `
                 <div class="form-group full-width">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
                     <textarea id="${name}" name="${name}" rows="3" ${required} 
@@ -805,45 +1028,51 @@ function renderFormField(name, field, value = '') {
                         ${field.placeholder ? `placeholder="${field.placeholder}"` : ''}>${value}</textarea>
                 </div>
             `;
+            break;
         case 'email':
-            return `
+            fieldHtml = `
                 <div class="form-group">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
                     <input type="email" id="${name}" name="${name}" value="${value}" ${required}
                         ${field.placeholder ? `placeholder="${field.placeholder}"` : ''}>
                 </div>
             `;
+            break;
         case 'phone':
-            return `
+            fieldHtml = `
                 <div class="form-group">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
                     <input type="tel" id="${name}" name="${name}" value="${value}" ${required}
                         ${field.placeholder ? `placeholder="${field.placeholder}"` : ''}>
                 </div>
             `;
+            break;
         case 'date':
-            return `
+            fieldHtml = `
                 <div class="form-group">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
                     <input type="date" id="${name}" name="${name}" value="${value}" ${required}>
                 </div>
             `;
+            break;
         case 'time':
-            return `
+            fieldHtml = `
                 <div class="form-group">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
                     <input type="time" id="${name}" name="${name}" value="${value}" ${required}>
                 </div>
             `;
+            break;
         case 'datetime':
-            return `
+            fieldHtml = `
                 <div class="form-group">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
                     <input type="datetime-local" id="${name}" name="${name}" value="${value}" ${required}>
                 </div>
             `;
+            break;
         case 'number':
-            return `
+            fieldHtml = `
                 <div class="form-group">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
                     <input type="number" id="${name}" name="${name}" value="${value}" ${required} 
@@ -851,8 +1080,9 @@ function renderFormField(name, field, value = '') {
                         ${field.max !== undefined ? `max="${field.max}"` : ''}>
                 </div>
             `;
+            break;
         case 'currency':
-            return `
+            fieldHtml = `
                 <div class="form-group">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -863,8 +1093,9 @@ function renderFormField(name, field, value = '') {
                     </div>
                 </div>
             `;
+            break;
         case 'checkbox':
-            return `
+            fieldHtml = `
                 <div class="form-group">
                     <label style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="checkbox" id="${name}" name="${name}" ${value === true || value === 'true' ? 'checked' : ''}>
@@ -872,20 +1103,22 @@ function renderFormField(name, field, value = '') {
                     </label>
                 </div>
             `;
+            break;
         case 'select':
-            return `
+            fieldHtml = `
                 <div class="form-group">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
                     <select id="${name}" name="${name}" ${required}>
                         <option value="">Bitte wählen</option>
-                        ${field.options.map(opt => `
+                        ${field.options && Array.isArray(field.options) ? field.options.map(opt => `
                             <option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>
-                        `).join('')}
+                        `).join('') : ''}
                     </select>
                 </div>
             `;
+            break;
         default:
-            return `
+            fieldHtml = `
                 <div class="form-group">
                     <label for="${name}">${field.label}${required ? ' *' : ''}</label>
                     <input type="text" id="${name}" name="${name}" value="${value}" ${required}
@@ -895,6 +1128,59 @@ function renderFormField(name, field, value = '') {
                 </div>
             `;
     }
+    
+    return fieldWrapper + fieldHtml + fieldWrapperEnd;
+}
+
+// Toggle section visibility
+function toggleSection(sectionId) {
+    const content = document.getElementById(`section-${sectionId}`);
+    const section = document.querySelector(`[data-section="${sectionId}"]`);
+    const arrow = section.querySelector('.section-arrow');
+    
+    if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        arrow.style.transform = 'rotate(0deg)';
+    } else {
+        content.classList.add('collapsed');
+        arrow.style.transform = 'rotate(-90deg)';
+    }
+}
+
+// Highlight fields that belong to selected template
+function highlightTemplateFields(templateId) {
+    // First remove all highlights
+    document.querySelectorAll('.form-field-wrapper').forEach(wrapper => {
+        wrapper.classList.remove('template-field-highlight');
+    });
+    
+    // Find the selected template
+    const template = state.templates.find(t => t.id === templateId);
+    if (!template || !template.template_fields) return;
+    
+    // Get field keys from this template
+    const templateFieldKeys = Object.keys(template.template_fields);
+    
+    // Highlight matching fields and expand their sections
+    templateFieldKeys.forEach(fieldKey => {
+        const fieldWrapper = document.querySelector(`[data-field-key="${fieldKey}"]`);
+        if (fieldWrapper) {
+            fieldWrapper.classList.add('template-field-highlight');
+            
+            // Find and expand the parent section
+            const parentSection = fieldWrapper.closest('.form-section');
+            if (parentSection) {
+                const sectionId = parentSection.dataset.section;
+                const content = document.getElementById(`section-${sectionId}`);
+                const arrow = parentSection.querySelector('.section-arrow');
+                
+                if (content && content.classList.contains('collapsed')) {
+                    content.classList.remove('collapsed');
+                    arrow.style.transform = 'rotate(0deg)';
+                }
+            }
+        }
+    });
 }
 
 // Document Generation
@@ -936,10 +1222,8 @@ async function generateDocuments() {
         // Reload documents
         loadProjectDocuments(state.currentProject.id);
         
-        // Load comments for admins
-        if (state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin')) {
-            state.documents.forEach(doc => loadDocumentComments(doc.id));
-        }
+        // Load comments for all users
+        state.documents.forEach(doc => loadDocumentComments(doc.id));
     } catch (error) {
         console.error('Error generating documents:', error);
         alert('Fehler beim Generieren der Dokumente: ' + error.message);
@@ -968,6 +1252,11 @@ async function loadProjectDocuments(projectId) {
 }
 
 function renderDocuments() {
+    console.log('=== renderDocuments called ===');
+    console.log('Current User:', state.currentUser);
+    console.log('Auth Store Model:', pb.authStore.model);
+    console.log('Is Valid:', pb.authStore.isValid);
+    
     const container = document.getElementById('documentsList');
     const selectedTemplateId = document.getElementById('templateSelector').value;
     
@@ -983,11 +1272,25 @@ function renderDocuments() {
         return;
     }
     
+    // Always show live preview with comment functionality
+    const template = state.templates.find(t => t.id === selectedTemplateId);
+    if (!template) {
+        console.error('Template not found:', selectedTemplateId);
+        return;
+    }
+    
     // Check if we have saved documents for this template
+    console.log('Checking for saved documents...');
+    console.log('state.documents:', state.documents);
+    console.log('state.documents length:', state.documents ? state.documents.length : 0);
+    
     if (state.documents && state.documents.length > 0) {
         const selectedDoc = state.documents.find(doc => 
             doc.expand?.template?.id === selectedTemplateId
         );
+        
+        console.log('Selected doc found:', !!selectedDoc);
+        console.log('Selected doc:', selectedDoc);
         
         if (selectedDoc) {
             // Render saved document
@@ -1008,12 +1311,14 @@ function renderDocuments() {
                                 <i data-feather="copy"></i>
                                 <span>Kopieren</span>
                             </button>
-                            ${state.currentUser.user_type === 'admin' || state.currentUser.email.includes('admin') ? `
-                                <button class="btn btn-small btn-primary" onclick="openCommentModal('${selectedDoc.id}')">
-                                    <i data-feather="message-circle"></i>
-                                    <span>Kommentar</span>
-                                </button>
-                            ` : ''}
+                            <button class="btn btn-small btn-primary" onclick="openCommentModal('${selectedDoc.id}')">
+                                <i data-feather="message-circle"></i>
+                                <span>Kommentar</span>
+                            </button>
+                            <button class="btn btn-small btn-secondary" onclick="showCommentsForDocument('${selectedDoc.id}')">
+                                <i data-feather="message-square"></i>
+                                <span>Kommentare anzeigen</span>
+                            </button>
                         </div>
                     </div>
                     <div class="document-preview" id="doc-${selectedDoc.id}">
@@ -1032,11 +1337,11 @@ function renderDocuments() {
             setTimeout(() => feather.replace(), 100);
         } else {
             // Show preview for selected template
-            showLiveTemplatePreview();
+            showLiveTemplatePreview(selectedTemplateId);
         }
     } else {
         // Show live preview
-        showLiveTemplatePreview();
+        showLiveTemplatePreview(selectedTemplateId);
     }
 }
 
@@ -1044,7 +1349,7 @@ function showLiveTemplatePreview() {
     const container = document.getElementById('documentsList');
     const selectedTemplateId = document.getElementById('templateSelector').value;
     
-    if (!selectedTemplateId) {
+    if (!selectedTemplateId || !state.currentProject) {
         return;
     }
     
@@ -1057,24 +1362,40 @@ function showLiveTemplatePreview() {
     
     const formData = collectFormData();
     
-    // Render preview for selected template
+    // Create a pseudo-document ID from project and template
+    const pseudoDocId = `${state.currentProject.id}_${selectedTemplate.id}`;
+    
+    // Render preview for selected template with comment support
     container.innerHTML = `
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">${selectedTemplate.name}</h3>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
-                    <span class="badge badge-processing">Vorschau</span>
-                    <button class="btn btn-small btn-secondary" onclick="downloadPreviewAsDocx('${selectedTemplate.id}')">
+                    <button class="btn btn-small btn-blue" onclick="downloadPreviewAsDocx('${selectedTemplate.id}')">
                         <i data-feather="download"></i>
                         <span>DOCX</span>
+                    </button>
+                    <button class="btn btn-small btn-secondary" onclick="openCommentModalForTemplate('${state.currentProject.id}', '${selectedTemplate.id}')">
+                        <i data-feather="message-circle"></i>
+                        <span>Kommentar</span>
+                    </button>
+                    <button class="btn btn-small btn-secondary" onclick="showCommentsForTemplate('${state.currentProject.id}', '${selectedTemplate.id}')">
+                        <i data-feather="message-square"></i>
+                        <span>Kommentare anzeigen</span>
                     </button>
                 </div>
             </div>
             <div class="document-preview" style="max-height: 600px; overflow-y: auto;">
                 ${renderTemplateContent(selectedTemplate, formData)}
             </div>
+            <div id="comments-${pseudoDocId}" style="margin-top: 1rem;">
+                <!-- Comments will be loaded here -->
+            </div>
         </div>
     `;
+    
+    // Load comments for this project/template combination
+    loadTemplateComments(state.currentProject.id, selectedTemplate.id);
     
     feather.replace();
 }
@@ -1383,10 +1704,56 @@ function renderDocumentContent(template, content, formData) {
 }
 
 // Comments
+async function loadTemplateComments(projectId, templateId) {
+    try {
+        const pseudoDocId = `${projectId}_${templateId}`;
+        // Use proper filter syntax for PocketBase
+        const comments = await pb.collection('comments').getList(1, 50, {
+            filter: `document='${pseudoDocId}'`,
+            expand: 'author',
+            sort: '-created'
+        });
+        
+        const container = document.getElementById(`comments-${pseudoDocId}`);
+        if (!container) {
+            console.error('Comments container not found:', `comments-${pseudoDocId}`);
+            return;
+        }
+        
+        if (comments.items.length > 0) {
+            container.innerHTML = `
+                <div style="border-top: 1px solid var(--gray-200); padding-top: 1rem;">
+                    <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Kommentare</h4>
+                    ${comments.items.map(comment => `
+                        <div style="background: var(--gray-50); padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                <strong style="font-size: 0.75rem;">${comment.expand?.author?.email || 'Admin'}</strong>
+                                <span style="font-size: 0.75rem; color: var(--gray-500);">
+                                    ${new Date(comment.created).toLocaleDateString('de-DE')}
+                                </span>
+                            </div>
+                            ${comment.field_reference ? `
+                                <span style="font-size: 0.75rem; background: var(--gray-200); padding: 0.125rem 0.5rem; border-radius: 4px;">
+                                    Feld: ${comment.field_reference}
+                                </span>
+                            ` : ''}
+                            <div style="margin-top: 0.5rem; font-size: 0.875rem;">${comment.comment_text}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } else {
+            container.innerHTML = '';
+        }
+    } catch (error) {
+        console.error('Error loading template comments:', error);
+    }
+}
+
 async function loadDocumentComments(documentId) {
     try {
         const comments = await pb.collection('comments').getList(1, 50, {
-            filter: `document = "${documentId}"`,
+            filter: `document='${documentId}'`,
             expand: 'author',
             sort: '-created'
         });
@@ -1424,6 +1791,17 @@ function openCommentModal(documentId) {
     const modal = document.getElementById('commentModal');
     modal.classList.add('active');
     modal.dataset.documentId = documentId;
+    modal.dataset.isTemplate = 'false';
+}
+
+function openCommentModalForTemplate(projectId, templateId) {
+    const modal = document.getElementById('commentModal');
+    modal.classList.add('active');
+    // Use combined ID for template comments
+    modal.dataset.documentId = `${projectId}_${templateId}`;
+    modal.dataset.isTemplate = 'true';
+    modal.dataset.projectId = projectId;
+    modal.dataset.templateId = templateId;
 }
 
 function closeCommentModal() {
@@ -1432,83 +1810,151 @@ function closeCommentModal() {
     document.getElementById('commentForm').reset();
 }
 
+// Comments Sidebar Functions
+function showCommentsForDocument(documentId) {
+    openCommentsSidebar();
+    loadCommentsToSidebar('document', documentId);
+}
+
+function showCommentsForTemplate(projectId, templateId) {
+    openCommentsSidebar();
+    loadCommentsToSidebar('template', null, projectId, templateId);
+}
+
+function openCommentsSidebar() {
+    const sidebar = document.getElementById('commentsSidebar');
+    sidebar.classList.add('active');
+}
+
+function closeCommentsSidebar() {
+    const sidebar = document.getElementById('commentsSidebar');
+    sidebar.classList.remove('active');
+}
+
+async function loadCommentsToSidebar(type, id, projectId = null, templateId = null) {
+    const content = document.getElementById('commentsSidebarContent');
+    content.innerHTML = '<div style="text-align: center; padding: 2rem;">Lade Kommentare...</div>';
+    
+    try {
+        let filter;
+        if (type === 'template' && projectId && templateId) {
+            // For template comments, filter by project and template
+            filter = `project='${projectId}' && template='${templateId}'`;
+        } else {
+            // For document comments, filter by document
+            filter = `document='${id}'`;
+        }
+        
+        const comments = await pb.collection('comments').getList(1, 50, {
+            filter: filter,
+            expand: 'author',
+            sort: '-created'
+        });
+        
+        if (comments.items.length === 0) {
+            content.innerHTML = `
+                <div class="comments-empty">
+                    <i data-feather="message-square" style="width: 48px; height: 48px; stroke-width: 1;"></i>
+                    <p>Noch keine Kommentare vorhanden</p>
+                    <button class="btn btn-primary btn-small" onclick="${type === 'template' ? 
+                        `openCommentModalForTemplate('${projectId}', '${templateId}')` : 
+                        `openCommentModal('${id}')`}">
+                        <i data-feather="plus"></i>
+                        <span>Ersten Kommentar hinzufügen</span>
+                    </button>
+                </div>
+            `;
+        } else {
+            content.innerHTML = comments.items.map(comment => `
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <span class="comment-author">${comment.expand?.author?.email || 'Benutzer'}</span>
+                        <span class="comment-date">${new Date(comment.created).toLocaleDateString('de-DE')}</span>
+                    </div>
+                    ${comment.field_reference ? `
+                        <div>
+                            <span class="comment-field-ref">Feld: ${comment.field_reference}</span>
+                            <span class="comment-status ${comment.status}">${
+                                comment.status === 'open' ? 'Offen' : 
+                                comment.status === 'resolved' ? 'Gelöst' : 'Info'
+                            }</span>
+                        </div>
+                    ` : `
+                        <div>
+                            <span class="comment-status ${comment.status}">${
+                                comment.status === 'open' ? 'Offen' : 
+                                comment.status === 'resolved' ? 'Gelöst' : 'Info'
+                            }</span>
+                        </div>
+                    `}
+                    <div class="comment-text">${comment.comment_text}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Re-initialize Feather icons
+        setTimeout(() => feather.replace(), 100);
+    } catch (error) {
+        console.error('Error loading comments to sidebar:', error);
+        content.innerHTML = '<div class="comments-empty"><p>Fehler beim Laden der Kommentare</p></div>';
+    }
+}
+
 async function handleCommentSave(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
     const modal = document.getElementById('commentModal');
     const documentId = modal.dataset.documentId;
+    const isTemplate = modal.dataset.isTemplate === 'true';
     
     try {
-        await pb.collection('comments').create({
-            document: documentId,
-            author: state.currentUser.id,
-            comment_text: formData.get('comment_text'),
-            field_reference: formData.get('field_reference'),
-            status: formData.get('status')
-        });
+        if (isTemplate) {
+            // For template comments, use the new project and template fields
+            const projectId = modal.dataset.projectId;
+            const templateId = modal.dataset.templateId;
+            
+            await pb.collection('comments').create({
+                project: projectId,
+                template: templateId,
+                author: state.currentUser.id,
+                comment_text: formData.get('comment_text'),
+                field_reference: formData.get('field_reference'),
+                status: formData.get('status')
+            });
+            loadTemplateComments(projectId, templateId);
+        } else {
+            // Regular document comment
+            await pb.collection('comments').create({
+                document: documentId,
+                author: state.currentUser.id,
+                comment_text: formData.get('comment_text'),
+                field_reference: formData.get('field_reference'),
+                status: formData.get('status')
+            });
+            
+            loadDocumentComments(documentId);
+        }
         
         alert('Kommentar gespeichert');
         closeCommentModal();
-        loadDocumentComments(documentId);
+        
+        // Update sidebar if it's open
+        const sidebar = document.getElementById('commentsSidebar');
+        if (sidebar.classList.contains('active')) {
+            if (isTemplate) {
+                const projectId = modal.dataset.projectId;
+                const templateId = modal.dataset.templateId;
+                loadCommentsToSidebar('template', null, projectId, templateId);
+            } else {
+                loadCommentsToSidebar('document', documentId);
+            }
+        }
     } catch (error) {
         alert('Fehler beim Speichern: ' + error.message);
     }
 }
 
-// Admin Functions
-async function loadAdminData() {
-    const container = document.getElementById('adminContent');
-    
-    // Only show API configuration
-        try {
-            const configs = await pb.collection('api_configs').getList();
-            
-            container.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h3>API Konfigurationen</h3>
-                    <button class="btn btn-primary btn-small" onclick="openApiSettingsModal()">
-                        <i data-feather="plus"></i>
-                        <span>Neue Konfiguration</span>
-                    </button>
-                </div>
-                ${configs.items.length === 0 ? `
-                    <div class="empty-state">
-                        <p>Keine API-Konfigurationen vorhanden</p>
-                    </div>
-                ` : configs.items.map(config => `
-                    <div style="padding: 1.5rem; background: var(--gray-50); border-radius: 8px; margin-bottom: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div>
-                                <h4 style="margin-bottom: 0.5rem;">${config.name}</h4>
-                                <p style="font-size: 0.875rem; color: var(--gray-600);">URL: ${config.api_url}</p>
-                                <p style="font-size: 0.875rem; color: var(--gray-600);">Format: ${config.data_format}</p>
-                                <p style="font-size: 0.875rem;">
-                                    Status: <span class="badge badge-${config.active ? 'completed' : 'draft'}">
-                                        ${config.active ? 'Aktiv' : 'Inaktiv'}
-                                    </span>
-                                </p>
-                            </div>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn btn-small btn-secondary" onclick="editApiConfig('${config.id}')">
-                                    <i data-feather="edit-3"></i>
-                                    <span>Bearbeiten</span>
-                                </button>
-                                <button class="btn btn-small btn-secondary" onclick="deleteApiConfig('${config.id}')">
-                                    <i data-feather="trash-2"></i>
-                                    <span>Löschen</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            `;
-            
-            // Re-initialize Feather icons for the newly added content
-            setTimeout(() => feather.replace(), 100);
-        } catch (error) {
-            container.innerHTML = '<p>Fehler beim Laden der API-Konfigurationen</p>';
-        }
-}
+// Admin functions removed - all users have equal access
 
 // Export Functions
 async function handleApiExport() {
@@ -1851,11 +2297,12 @@ async function handleDownloadAllPreviews() {
         
         const applicableTemplates = state.templates.filter(template => {
             if (!thresholdType) return true; // If no threshold, include all
-            if (thresholdType === 'oberschwellig') {
-                return ['VgV', 'VSVgV', 'Vermerk'].includes(template.category);
-            } else {
-                return ['UVgO', 'Vermerk'].includes(template.category);
+            // If template has no threshold_type or it's 'beide', include it for any project
+            if (!template.threshold_type || template.threshold_type === 'beide') {
+                return true;
             }
+            // Otherwise, match the project's threshold_type
+            return template.threshold_type === thresholdType;
         });
         
         console.log('Applicable templates:', applicableTemplates);
@@ -2046,7 +2493,7 @@ async function generateCommentsDocument() {
         
         // Get comments for this document
         const comments = await pb.collection('comments').getList(1, 50, {
-            filter: `document = "${doc.id}"`,
+            filter: `document='${doc.id}'`,
             expand: 'author',
             sort: '-created'
         });
@@ -2133,115 +2580,9 @@ async function generateCommentsDocument() {
     });
 }
 
-// API Settings Functions
-function openApiSettingsModal(configId = null) {
-    const modal = document.getElementById('apiSettingsModal');
-    modal.classList.add('active');
-    
-    if (configId) {
-        // Load existing config
-        loadApiConfig(configId);
-    } else {
-        // Reset form for new config
-        document.getElementById('apiSettingsForm').reset();
-        document.getElementById('jsonMapping').value = JSON.stringify({
-            "vergabenummer": "{{vergabenummer}}",
-            "bezeichnung": "{{auftrag_bezeichnung}}",
-            "vergabestelle": "{{vergabestelle_name}}",
-            "auftragswert": "{{geschaetzter_auftragswert}}",
-            "angebotsfrist": "{{angebotsfrist_datum}}",
-            "documents": "{{documents}}"
-        }, null, 2);
-    }
-}
+// API Settings removed - not needed for regular users
 
-async function loadApiConfig(configId) {
-    try {
-        const config = await pb.collection('api_configs').getOne(configId);
-        document.getElementById('apiName').value = config.name;
-        document.getElementById('apiUrl').value = config.api_url;
-        document.getElementById('apiToken').value = config.auth_token || '';
-        document.getElementById('dataFormat').value = config.data_format;
-        document.getElementById('jsonMapping').value = JSON.stringify(config.request_template, null, 2);
-        document.getElementById('apiActive').checked = config.active;
-        
-        // Store config ID for update
-        document.getElementById('apiSettingsForm').dataset.configId = configId;
-    } catch (error) {
-        alert('Fehler beim Laden der Konfiguration');
-    }
-}
-
-function closeApiSettingsModal() {
-    const modal = document.getElementById('apiSettingsModal');
-    modal.classList.remove('active');
-    document.getElementById('apiSettingsForm').reset();
-    delete document.getElementById('apiSettingsForm').dataset.configId;
-}
-
-async function handleApiSettingsSave(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const configId = e.target.dataset.configId;
-    
-    try {
-        const requestTemplate = JSON.parse(formData.get('request_template'));
-        const configData = {
-            name: formData.get('name'),
-            api_url: formData.get('api_url'),
-            auth_token: formData.get('auth_token') || '',
-            data_format: formData.get('data_format'),
-            request_template: requestTemplate,
-            headers: {
-                'Content-Type': formData.get('data_format') === 'json' ? 'application/json' : 'application/xml'
-            },
-            active: formData.has('active')
-        };
-        
-        if (configData.active) {
-            // Deactivate all other configs
-            const configs = await pb.collection('api_configs').getList(1, 50, {
-                filter: 'active = true'
-            });
-            for (const config of configs.items) {
-                if (config.id !== configId) {
-                    await pb.collection('api_configs').update(config.id, { active: false });
-                }
-            }
-        }
-        
-        if (configId) {
-            await pb.collection('api_configs').update(configId, configData);
-            alert('Konfiguration aktualisiert');
-        } else {
-            await pb.collection('api_configs').create(configData);
-            alert('Konfiguration erstellt');
-        }
-        
-        closeApiSettingsModal();
-        loadAdminData('api');
-    } catch (error) {
-        alert('Fehler beim Speichern: ' + error.message);
-    }
-}
-
-async function deleteApiConfig(configId) {
-    if (confirm('Möchten Sie diese API-Konfiguration wirklich löschen?')) {
-        try {
-            await pb.collection('api_configs').delete(configId);
-            alert('Konfiguration gelöscht');
-            loadAdminData('api');
-        } catch (error) {
-            alert('Fehler beim Löschen: ' + error.message);
-        }
-    }
-}
-
-// Setup API settings event listeners
-document.getElementById('apiSettingsForm').addEventListener('submit', handleApiSettingsSave);
-document.querySelectorAll('#apiSettingsModal .close-btn').forEach(btn => {
-    btn.addEventListener('click', closeApiSettingsModal);
-});
+// API settings handlers removed
 
 // Toast Notification System
 function showToast(message, type = 'info') {
@@ -2298,7 +2639,7 @@ async function deleteProject(projectId) {
             for (const doc of documents.items) {
                 // Delete comments for each document
                 const comments = await pb.collection('comments').getList(1, 100, {
-                    filter: `document = "${doc.id}"`
+                    filter: `document='${doc.id}'`
                 });
                 
                 for (const comment of comments.items) {
@@ -2555,9 +2896,9 @@ function renderCompactFormField(name, field, value = '') {
                     <label for="${name}" style="font-size: 0.875rem; font-weight: 500;">${field.label}${requiredMark}</label>
                     <select id="${name}" name="${name}" ${required} style="font-size: 0.875rem;">
                         <option value="">Bitte wählen</option>
-                        ${field.options.map(opt => `
+                        ${field.options && Array.isArray(field.options) ? field.options.map(opt => `
                             <option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>
-                        `).join('')}
+                        `).join('') : ''}
                     </select>
                 </div>
             `;
@@ -2819,12 +3160,15 @@ function openProjectEditModal(projectId) {
     document.getElementById('modalProjectDescription').value = project.description || '';
     document.getElementById('modalProcurementType').value = project.procurement_type || '';
     document.getElementById('modalThresholdType').value = project.threshold_type || '';
+    document.getElementById('modalProjectStatus').value = project.status || 'draft';
     
     // Store project ID in form for later saving
     document.getElementById('basicDataForm').dataset.projectId = projectId;
     
     // Show modal
-    document.getElementById('basicDataModal').style.display = 'block';
+    const modal = document.getElementById('basicDataModal');
+    modal.style.display = 'flex';
+    modal.classList.add('active');
 }
 
 // Basic Data Modal Functions
@@ -2843,7 +3187,9 @@ function openBasicDataModal() {
 }
 
 function closeBasicDataModal() {
-    document.getElementById('basicDataModal').style.display = 'none';
+    const modal = document.getElementById('basicDataModal');
+    modal.style.display = 'none';
+    modal.classList.remove('active');
     // Clear project ID from form
     delete document.getElementById('basicDataForm').dataset.projectId;
 }
@@ -2868,7 +3214,8 @@ async function handleBasicDataSubmit(e) {
         name: formData.get('name'),
         description: formData.get('description'),
         procurement_type: formData.get('procurement_type'),
-        threshold_type: formData.get('threshold_type')
+        threshold_type: formData.get('threshold_type'),
+        status: formData.get('status')
     };
     
     try {
@@ -3043,12 +3390,47 @@ window.downloadDocumentAsDocx = downloadDocumentAsDocx;
 window.downloadPreviewAsDocx = downloadPreviewAsDocx;
 window.copyDocument = copyDocument;
 window.openCommentModal = openCommentModal;
+window.openCommentModalForTemplate = openCommentModalForTemplate;
+window.showCommentsForDocument = showCommentsForDocument;
+window.showCommentsForTemplate = showCommentsForTemplate;
+window.closeCommentsSidebar = closeCommentsSidebar;
 window.handleNewProject = handleNewProject;
-window.openApiSettingsModal = openApiSettingsModal;
-window.editApiConfig = openApiSettingsModal;
-window.deleteApiConfig = deleteApiConfig;
+// API settings functions removed
 window.deleteProject = deleteProject;
 window.showToast = showToast;
+// Debug function
+window.debugCommentSystem = function() {
+    console.log('=== COMMENT SYSTEM DEBUG ===');
+    console.log('Current User:', state.currentUser);
+    console.log('User ID:', state.currentUser?.id);
+    console.log('User Email:', state.currentUser?.email);
+    console.log('Email includes admin:', state.currentUser?.email?.includes('admin'));
+    console.log('Auth Valid:', pb.authStore.isValid);
+    console.log('Auth Model:', pb.authStore.model);
+    console.log('Documents:', state.documents);
+    console.log('Current Project:', state.currentProject);
+    
+    // Detailed document check
+    if (state.documents && state.documents.length > 0) {
+        console.log('Document details:');
+        state.documents.forEach((doc, idx) => {
+            console.log(`Document ${idx}:`, doc);
+            console.log(`- ID: ${doc.id}`);
+            console.log(`- Template ID: ${doc.template}`);
+            console.log(`- Has expand: ${!!doc.expand}`);
+            console.log(`- Expand template: ${doc.expand?.template}`);
+            console.log(`- Expand template ID: ${doc.expand?.template?.id}`);
+        });
+        
+        const selectedTemplateId = document.getElementById('templateSelector').value;
+        console.log('Selected template ID in dropdown:', selectedTemplateId);
+        
+        console.log('Found documents, calling renderDocuments...');
+        renderDocuments();
+    } else {
+        console.log('No documents found. Try generating documents first.');
+    }
+};
 // Removed handleThresholdChange export
 window.handleTemplateSelectionChange = handleTemplateSelectionChange;
 window.filterTemplates = filterTemplates;

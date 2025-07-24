@@ -184,17 +184,6 @@
                             <div id="dynamicFormFields">
                                 <!-- Dynamic form fields will be loaded here -->
                             </div>
-                            
-                            <div class="form-actions" style="margin-top: 1.5rem;">
-                                <button type="submit" class="btn btn-ai-generate">
-                                    <i data-feather="save"></i>
-                                    <span>Speichern und Dokumente generieren</span>
-                                </button>
-                                <button type="button" id="exportToApi" class="btn btn-secondary" style="margin-top: 0.5rem; width: 100%;">
-                                    <i data-feather="send"></i>
-                                    <span>An Vergabeplattform senden</span>
-                                </button>
-                            </div>
                         </form>
                     </div>
                 </div>
@@ -208,18 +197,45 @@
                                 <i data-feather="download"></i>
                                 <span>Alle herunterladen</span>
                             </button>
+                            <button type="button" id="exportToApi" class="btn btn-secondary" style="min-width: 200px; height: 40px; margin-left: 0.5rem;">
+                                <i data-feather="send"></i>
+                                <span>An Vergabeplattform senden</span>
+                            </button>
                         </div>
                     </div>
                     
                     <div class="panel-content">
+                        <!-- Document Actions -->
+                        <div id="documentActionsBar" style="display: none; margin-bottom: 1rem;">
+                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                <button id="docxBtn" class="btn btn-small btn-blue">
+                                    <i data-feather="download"></i>
+                                    <span>DOCX</span>
+                                </button>
+                                <button id="copyBtn" class="btn btn-small btn-secondary">
+                                    <i data-feather="copy"></i>
+                                    <span>Kopieren</span>
+                                </button>
+                                <button id="commentBtn" class="btn btn-small btn-secondary">
+                                    <i data-feather="message-circle"></i>
+                                    <span>Kommentar</span>
+                                </button>
+                                <button id="showCommentsBtn" class="btn btn-small btn-secondary">
+                                    <i data-feather="message-square"></i>
+                                    <span>Kommentare anzeigen</span>
+                                </button>
+                            </div>
+                        </div>
+                        
                         <!-- Template Selector -->
-                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <div class="form-group" style="margin-bottom: 1rem;">
                             <label for="templateSelector">Vorlage auswählen:</label>
                             <select id="templateSelector" class="form-control" style="width: 100%;">
                                 <option value="">Bitte wählen Sie eine Vorlage...</option>
                             </select>
                         </div>
                         
+                        <!-- Document View -->
                         <div id="documentsList" class="documents-container">
                             <div class="empty-state">
                                 <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1;"></i>

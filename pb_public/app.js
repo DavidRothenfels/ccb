@@ -97,12 +97,18 @@ function setupEventListeners() {
     
     
     // Back to dashboard
-    document.getElementById('backToDashboard').addEventListener('click', showDashboard);
+    const backToDashboard = document.getElementById('backToDashboard');
+    if (backToDashboard) {
+        backToDashboard.addEventListener('click', showDashboard);
+    }
     
     // Note: Event listeners for edit sidebar are set up in showProjectEdit function
     
     // Project form
-    document.getElementById('projectForm').addEventListener('submit', handleProjectSave);
+    const projectForm = document.getElementById('projectForm');
+    if (projectForm) {
+        projectForm.addEventListener('submit', handleProjectSave);
+    }
     
     // Template selector event listener is added below in the event listeners section
     
@@ -804,18 +810,20 @@ function populateTemplateSelector() {
         selector.appendChild(option);
     });
     
-    // Select first template by default if available
-    if (applicableTemplates.length > 0) {
-        // Check if previously selected template is still available
+    // Check if previously selected template is still available
+    if (state.selectedTemplateId) {
         const previouslySelected = applicableTemplates.find(t => t.id === state.selectedTemplateId);
         if (previouslySelected) {
             selector.value = previouslySelected.id;
+            // Apply highlighting after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                highlightTemplateFields(previouslySelected.id);
+            }, 100);
         } else {
-            selector.value = applicableTemplates[0].id;
-            state.selectedTemplateId = applicableTemplates[0].id;
+            // Clear selection if previous template is not available
+            selector.value = '';
+            state.selectedTemplateId = null;
         }
-        // Trigger change event to load fields and document
-        handleTemplateChange();
     }
 }
 
@@ -826,12 +834,17 @@ function handleTemplateChange() {
     
     state.selectedTemplateId = selector.value;
     
-    // Reload form fields for selected template
-    const savedData = state.currentProject?.form_data || {};
-    loadDynamicFields(savedData);
-    
-    // Highlight fields for selected template
-    if (selector.value) {
+    // Clear highlights if no template selected
+    if (!selector.value || selector.value === '') {
+        // Remove all highlights
+        document.querySelectorAll('.form-section').forEach(section => {
+            section.classList.remove('has-template-fields');
+        });
+        document.querySelectorAll('.form-field-wrapper').forEach(wrapper => {
+            wrapper.classList.remove('template-field-highlight');
+        });
+    } else {
+        // Highlight fields for selected template
         highlightTemplateFields(selector.value);
     }
     
@@ -1004,10 +1017,13 @@ function loadDynamicFields(savedData = {}) {
     // Add input event listeners for live preview
     setupLivePreview();
     
-    // Highlight fields if a template is selected
-    const selectedTemplateId = document.getElementById('templateSelector')?.value;
-    if (selectedTemplateId) {
-        highlightTemplateFields(selectedTemplateId);
+    // Re-apply highlighting if a template is currently selected
+    const selectedTemplateId = state.selectedTemplateId || document.getElementById('templateSelector')?.value;
+    if (selectedTemplateId && selectedTemplateId !== '') {
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+            highlightTemplateFields(selectedTemplateId);
+        }, 100);
     }
 }
 
@@ -1149,7 +1165,10 @@ function toggleSection(sectionId) {
 
 // Highlight fields that belong to selected template
 function highlightTemplateFields(templateId) {
-    // First remove all highlights
+    // First remove all highlights from sections and fields
+    document.querySelectorAll('.form-section').forEach(section => {
+        section.classList.remove('has-template-fields');
+    });
     document.querySelectorAll('.form-field-wrapper').forEach(wrapper => {
         wrapper.classList.remove('template-field-highlight');
     });
@@ -1161,26 +1180,69 @@ function highlightTemplateFields(templateId) {
     // Get field keys from this template
     const templateFieldKeys = Object.keys(template.template_fields);
     
-    // Highlight matching fields and expand their sections
+    // Track which sections have template fields
+    const sectionsWithFields = new Set();
+    
+    // Mark fields and their parent sections
     templateFieldKeys.forEach(fieldKey => {
         const fieldWrapper = document.querySelector(`[data-field-key="${fieldKey}"]`);
         if (fieldWrapper) {
             fieldWrapper.classList.add('template-field-highlight');
             
-            // Find and expand the parent section
+            // Find and mark the parent section
             const parentSection = fieldWrapper.closest('.form-section');
             if (parentSection) {
-                const sectionId = parentSection.dataset.section;
-                const content = document.getElementById(`section-${sectionId}`);
-                const arrow = parentSection.querySelector('.section-arrow');
-                
-                if (content && content.classList.contains('collapsed')) {
-                    content.classList.remove('collapsed');
-                    arrow.style.transform = 'rotate(0deg)';
-                }
+                parentSection.classList.add('has-template-fields');
+                sectionsWithFields.add(parentSection.dataset.section);
             }
         }
     });
+}
+
+// Auto-save project data
+async function autoSaveProject() {
+    if (!state.currentProject) return;
+    
+    const formData = getCurrentFormData();
+    
+    // Update project form_data
+    state.currentProject.form_data = formData;
+    
+    try {
+        await pb.collection('projects').update(state.currentProject.id, {
+            form_data: formData,
+            updated: new Date().toISOString()
+        });
+        
+        // Show subtle save indicator (optional)
+        showSaveIndicator();
+    } catch (error) {
+        console.error('Auto-save error:', error);
+    }
+}
+
+// Show save indicator
+function showSaveIndicator() {
+    // Remove any existing indicator
+    const existingIndicator = document.querySelector('.save-indicator');
+    if (existingIndicator) {
+        existingIndicator.remove();
+    }
+    
+    // Create new indicator
+    const indicator = document.createElement('div');
+    indicator.className = 'save-indicator';
+    indicator.innerHTML = '<i data-feather="check"></i> Gespeichert';
+    document.querySelector('.left-panel .panel-header').appendChild(indicator);
+    
+    // Initialize feather icon
+    feather.replace();
+    
+    // Remove after 2 seconds
+    setTimeout(() => {
+        indicator.style.opacity = '0';
+        setTimeout(() => indicator.remove(), 300);
+    }, 2000);
 }
 
 // Document Generation
@@ -1268,6 +1330,9 @@ function renderDocuments() {
                 <p>Bitte wählen Sie eine Vorlage aus dem Dropdown oben aus.</p>
             </div>
         `;
+        // Hide document actions bar
+        const actionsBar = document.getElementById('documentActionsBar');
+        if (actionsBar) actionsBar.style.display = 'none';
         feather.replace();
         return;
     }
@@ -1300,27 +1365,6 @@ function renderDocuments() {
             
             container.innerHTML = `
                 <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">${template?.name || 'Dokument'}</h3>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-small btn-secondary" onclick="downloadDocumentAsDocx('${selectedDoc.id}')">
-                                <i data-feather="download"></i>
-                                <span>DOCX</span>
-                            </button>
-                            <button class="btn btn-small btn-secondary" onclick="copyDocument('${selectedDoc.id}')">
-                                <i data-feather="copy"></i>
-                                <span>Kopieren</span>
-                            </button>
-                            <button class="btn btn-small btn-primary" onclick="openCommentModal('${selectedDoc.id}')">
-                                <i data-feather="message-circle"></i>
-                                <span>Kommentar</span>
-                            </button>
-                            <button class="btn btn-small btn-secondary" onclick="showCommentsForDocument('${selectedDoc.id}')">
-                                <i data-feather="message-square"></i>
-                                <span>Kommentare anzeigen</span>
-                            </button>
-                        </div>
-                    </div>
                     <div class="document-preview" id="doc-${selectedDoc.id}">
                         ${renderDocumentContent(template, content, formData)}
                     </div>
@@ -1329,6 +1373,9 @@ function renderDocuments() {
                     </div>
                 </div>
             `;
+            
+            // Setup document action buttons
+            setupDocumentActionButtons(selectedDoc.id, 'document');
             
             // Load comments for this document
             loadDocumentComments(selectedDoc.id);
@@ -1368,24 +1415,7 @@ function showLiveTemplatePreview() {
     // Render preview for selected template with comment support
     container.innerHTML = `
         <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">${selectedTemplate.name}</h3>
-                <div style="display: flex; gap: 0.5rem; align-items: center;">
-                    <button class="btn btn-small btn-blue" onclick="downloadPreviewAsDocx('${selectedTemplate.id}')">
-                        <i data-feather="download"></i>
-                        <span>DOCX</span>
-                    </button>
-                    <button class="btn btn-small btn-secondary" onclick="openCommentModalForTemplate('${state.currentProject.id}', '${selectedTemplate.id}')">
-                        <i data-feather="message-circle"></i>
-                        <span>Kommentar</span>
-                    </button>
-                    <button class="btn btn-small btn-secondary" onclick="showCommentsForTemplate('${state.currentProject.id}', '${selectedTemplate.id}')">
-                        <i data-feather="message-square"></i>
-                        <span>Kommentare anzeigen</span>
-                    </button>
-                </div>
-            </div>
-            <div class="document-preview" style="max-height: 600px; overflow-y: auto;">
+            <div class="document-preview">
                 ${renderTemplateContent(selectedTemplate, formData)}
             </div>
             <div id="comments-${pseudoDocId}" style="margin-top: 1rem;">
@@ -1393,6 +1423,9 @@ function showLiveTemplatePreview() {
             </div>
         </div>
     `;
+    
+    // Setup document action buttons for template
+    setupDocumentActionButtons(selectedTemplate.id, 'template');
     
     // Load comments for this project/template combination
     loadTemplateComments(state.currentProject.id, selectedTemplate.id);
@@ -2105,6 +2138,48 @@ async function downloadPreviewAsDocx(templateId) {
     }
 }
 
+// Setup document action buttons
+function setupDocumentActionButtons(id, type) {
+    const actionsBar = document.getElementById('documentActionsBar');
+    if (!actionsBar) return;
+    
+    // Show the actions bar
+    actionsBar.style.display = 'block';
+    
+    // Get buttons
+    const docxBtn = document.getElementById('docxBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const commentBtn = document.getElementById('commentBtn');
+    const showCommentsBtn = document.getElementById('showCommentsBtn');
+    
+    // Clear previous listeners by cloning
+    const newDocxBtn = docxBtn.cloneNode(true);
+    const newCopyBtn = copyBtn.cloneNode(true);
+    const newCommentBtn = commentBtn.cloneNode(true);
+    const newShowCommentsBtn = showCommentsBtn.cloneNode(true);
+    
+    docxBtn.parentNode.replaceChild(newDocxBtn, docxBtn);
+    copyBtn.parentNode.replaceChild(newCopyBtn, copyBtn);
+    commentBtn.parentNode.replaceChild(newCommentBtn, commentBtn);
+    showCommentsBtn.parentNode.replaceChild(newShowCommentsBtn, showCommentsBtn);
+    
+    // Add new listeners based on type
+    if (type === 'document') {
+        newDocxBtn.onclick = () => downloadDocumentAsDocx(id);
+        newCopyBtn.onclick = () => copyDocument(id);
+        newCommentBtn.onclick = () => openCommentModal(id);
+        newShowCommentsBtn.onclick = () => showCommentsForDocument(id);
+    } else if (type === 'template') {
+        newDocxBtn.onclick = () => downloadPreviewAsDocx(id);
+        newCopyBtn.onclick = () => copyDocument(id); // Use same copy function
+        newCommentBtn.onclick = () => openCommentModalForTemplate(state.currentProject.id, id);
+        newShowCommentsBtn.onclick = () => showCommentsForTemplate(state.currentProject.id, id);
+    }
+    
+    // Re-initialize feather icons
+    feather.replace();
+}
+
 // Document Actions - Download aktuell angezeigtes Dokument als DOCX
 async function downloadDocumentAsDocx(documentId) {
     const doc = state.documents.find(d => d.id === documentId);
@@ -2233,8 +2308,17 @@ function setupLivePreview() {
     const formFields = document.querySelectorAll('#dynamicFormFields input, #dynamicFormFields textarea, #dynamicFormFields select');
     
     formFields.forEach(field => {
-        field.addEventListener('input', debounce(() => updateLivePreview(), 300));
-        field.addEventListener('change', () => updateLivePreview());
+        // Live preview update
+        field.addEventListener('input', debounce(() => {
+            updateLivePreview();
+            autoSaveProject();
+        }, 500));
+        
+        // Immediate save on change (for select, checkbox, etc.)
+        field.addEventListener('change', () => {
+            updateLivePreview();
+            autoSaveProject();
+        });
     });
 }
 

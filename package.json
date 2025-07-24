@@ -17,6 +17,7 @@
     "docx": "^9.5.1",
     "jszip": "^3.10.1",
     "mammoth": "^1.9.1",
-    "pocketbase": "^0.26.1"
+    "pocketbase": "^0.26.2",
+    "pocketbase-server": "^1.0.9"
   }
 }

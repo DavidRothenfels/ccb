@@ -33,3 +33,5 @@ Thumbs.db
 .env.local
 
 docs/
+backups/
+scripts/

@@ -1,12 +1,10 @@
 FROM alpine:3.19
 
-# Install required packages
+# Install minimal dependencies
 RUN apk add --no-cache \
     ca-certificates \
-    unzip \
     wget \
-    curl \
-    bash
+    && rm -rf /var/cache/apk/*
 
 # Create app directory
 WORKDIR /app
@@ -37,8 +35,8 @@ RUN mkdir -p /app/pb_data /app/pb_logs /app/templates
 EXPOSE 8091
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8091/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8091/api/health || exit 1
 
 # Start PocketBase
 CMD ["./pocketbase", "serve", "--http=0.0.0.0:8091"]

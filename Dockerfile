@@ -11,9 +11,16 @@ RUN apk add --no-cache \
 # Create app directory
 WORKDIR /app
 
-# Copy the pre-built PocketBase binary
-COPY pocketbase ./pocketbase
-RUN chmod +x ./pocketbase
+# Download PocketBase for the correct architecture
+ARG TARGETARCH
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+        wget -O pocketbase.zip https://github.com/pocketbase/pocketbase/releases/download/v0.28.4/pocketbase_0.28.4_linux_arm64.zip; \
+    else \
+        wget -O pocketbase.zip https://github.com/pocketbase/pocketbase/releases/download/v0.28.4/pocketbase_0.28.4_linux_amd64.zip; \
+    fi && \
+    unzip pocketbase.zip && \
+    rm pocketbase.zip && \
+    chmod +x ./pocketbase
 
 # Copy all PocketBase directories
 COPY pb_data/ ./pb_data/

@@ -79,8 +79,21 @@ jobs:
         run: |
           IMAGE_NAME_LOWER=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
           docker run -d --name test-container -p 8091:8091 ${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}:latest
-          sleep 10
-          curl -f http://localhost:8091/api/health || exit 1
+          
+          # Wait for container to be ready
+          echo "Waiting for container to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost:8091/api/health 2>/dev/null; then
+              echo "Container is healthy!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+          
+          # Final health check
+          curl -f http://localhost:8091/api/health || (docker logs test-container && exit 1)
+          
           docker stop test-container
           docker rm test-container
 

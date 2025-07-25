@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   citychallenge:
-    image: ghcr.io/${GITHUB_REPOSITORY:-citychallenge/citychallenge}:latest
+    image: ghcr.io/davidrothenfels/ccb:latest
     container_name: citychallenge
     restart: unless-stopped
     volumes:
@@ -13,7 +13,7 @@ services:
       - TZ=Europe/Berlin
       - PORT=8091
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8091/api/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8091/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

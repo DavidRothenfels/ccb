@@ -1,7 +1,10 @@
 .gitgnore
 
 # PocketBase
-pb_data/
+pb_data/*
+!pb_data/.gitkeep
+pb_hooks/*
+!pb_hooks/.gitkeep
 *.db
 *.db-shm
 *.db-wal

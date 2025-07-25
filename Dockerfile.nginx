@@ -1,0 +1,51 @@
+# Nginx + PocketBase for Coolify deployment
+FROM alpine:3.19
+
+# Install nginx and supervisor
+RUN apk add --no-cache \
+    nginx \
+    supervisor \
+    ca-certificates \
+    wget \
+    && rm -rf /var/cache/apk/*
+
+# Create necessary directories
+RUN mkdir -p /var/log/supervisor /run/nginx
+
+# Download PocketBase
+WORKDIR /app
+ARG TARGETARCH
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+        wget -O pocketbase.zip https://github.com/pocketbase/pocketbase/releases/download/v0.28.4/pocketbase_0.28.4_linux_arm64.zip; \
+    else \
+        wget -O pocketbase.zip https://github.com/pocketbase/pocketbase/releases/download/v0.28.4/pocketbase_0.28.4_linux_amd64.zip; \
+    fi && \
+    unzip pocketbase.zip && \
+    rm pocketbase.zip && \
+    chmod +x ./pocketbase
+
+# Copy PocketBase data
+COPY pb_data/ ./pb_data/
+COPY pb_public/ ./pb_public/
+COPY pb_hooks/ ./pb_hooks/
+COPY pb_migrations/ ./pb_migrations/
+COPY templates/ ./templates/
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy supervisord configuration
+COPY supervisord.conf /etc/supervisord.conf
+
+# Create directories if they don't exist
+RUN mkdir -p /app/pb_data /app/pb_logs /app/templates
+
+# Expose port 80 (nginx)
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost/api/health || exit 1
+
+# Start supervisor (which starts nginx and pocketbase)
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf"]

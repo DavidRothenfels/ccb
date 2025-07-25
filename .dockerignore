@@ -35,5 +35,10 @@ Thumbs.db
 # Docker files
 docker-compose*.yml
 Dockerfile
+!Dockerfile.nginx
+
+# Config files needed for nginx setup
+!nginx.conf
+!supervisord.conf
 
 # Keep only essential runtime files

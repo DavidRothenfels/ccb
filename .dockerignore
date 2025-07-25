@@ -1,42 +1,39 @@
 # Git
 .git
 .gitignore
-.github
 
-# Documentation
-*.md
-.coolify
-LICENSE
-
-# Development
-test/
+# Development files
 *.log
-.env
-.env.*
+*.md
+docs/
+test/
+scripts/
+backups/
+node_modules/
+
+# Build artifacts
+*.zip
+pocketbase.zip
+
+# Development scripts
+start.sh
+stop.sh
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
 
 # OS files
 .DS_Store
 Thumbs.db
 
-# Editor directories
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Node modules (if any)
-node_modules/
-
-# Build artifacts
-*.zip
-*.tar.gz
-
-# Docker
-Dockerfile*
+# Docker files
 docker-compose*.yml
-.dockerignore
+Dockerfile
 
-# Temporary files
-*.tmp
-*.temp
-*~
+# Keep only essential runtime files

@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+mcP: list_collections geht nicht, nutze dafür direkt sqlite in pb_data, alles andere über procketbase
 
 # CityChallenge - Vergabe-Vorbereitungs-Tool
 
